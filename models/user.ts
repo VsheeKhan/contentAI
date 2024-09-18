@@ -5,6 +5,12 @@ interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  userType ?: number;
+}
+
+export enum userType {
+  admin = 1,
+  user = 2
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -22,6 +28,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: true,
     },
+    userType: {
+      type: Number,
+      required: true,
+      enum: userType,
+      default: userType.user
+    }
   },
   {
     timestamps: true,
