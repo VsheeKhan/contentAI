@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectToDatabase from '../lib/mongodb';
 import { findUserByEmail, createUser, authenticateUser } from '../services/userService';
+import Plan from '../models/plan';
+import { createSubscription } from '../services/subscriptionService';
 import { generateToken } from '../utils/jwt';
 
 type Data = {
@@ -27,7 +29,17 @@ export default async function registerUser(req: NextApiRequest, res: NextApiResp
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      await createUser({ name, email, password });
+      const newUser:any = await createUser({ name, email, password });
+
+      // Assign trial to the new user
+      const freePlan:any = await Plan.findOne({ name: 'trial' });
+      if (!freePlan) {
+        return res.status(500).json({ message: 'trial not found. Contact admin.' });
+      }
+
+      // Create a subscription for the new user using the free plan
+      await createSubscription({ userId: newUser._id, planId: freePlan._id });
+
       res.status(201).json({ message: 'User registered successfully' });
     } catch (error: any) {
       console.error(error);
