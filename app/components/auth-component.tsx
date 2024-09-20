@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -34,7 +35,7 @@ const loginSchema = z.object({
 });
 
 const registerSchema = loginSchema.extend({
-  fullName: z
+  name: z
     .string()
     .min(2, { message: "Full name must be at least 2 characters" }),
 });
@@ -44,6 +45,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthComponent() {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -56,7 +58,7 @@ export default function AuthComponent() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      fullName: "",
+      name: "",
       email: "",
       password: "",
     },
@@ -71,6 +73,7 @@ export default function AuthComponent() {
       });
       if (response.ok) {
         console.log("Login successful");
+        router.push("/");
       } else {
         console.error("Login failed");
       }
@@ -88,6 +91,7 @@ export default function AuthComponent() {
       });
       if (response.ok) {
         console.log("Registration successful");
+        router.push("/");
       } else {
         console.error("Registration failed");
       }
@@ -179,7 +183,7 @@ export default function AuthComponent() {
               >
                 <FormField
                   control={registerForm.control}
-                  name="fullName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
