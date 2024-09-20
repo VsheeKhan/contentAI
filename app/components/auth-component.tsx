@@ -11,9 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { AlertCircle, EyeIcon, EyeOffIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -46,6 +47,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -65,6 +68,7 @@ export default function AuthComponent() {
   });
 
   const handleLogin = async (values: LoginFormValues) => {
+    setLoginError(null);
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -76,13 +80,17 @@ export default function AuthComponent() {
         router.push("/");
       } else {
         console.error("Login failed");
+        const errorData = await response.json();
+        setLoginError(errorData.message || "Login failed. Please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
+      setLoginError("An unexpected error occurred. Please try again.");
     }
   };
 
   const handleRegister = async (values: RegisterFormValues) => {
+    setRegisterError(null);
     try {
       const response = await fetch("/api/register", {
         method: "POST",
@@ -94,9 +102,14 @@ export default function AuthComponent() {
         router.push("/");
       } else {
         console.error("Registration failed");
+        const errorData = await response.json();
+        setRegisterError(
+          errorData.message || "Registration failed. Please try again."
+        );
       }
     } catch (error) {
       console.error("Registration error:", error);
+      setRegisterError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -120,6 +133,13 @@ export default function AuthComponent() {
                 onSubmit={loginForm.handleSubmit(handleLogin)}
                 className="space-y-4"
               >
+                {loginError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{loginError}</AlertDescription>
+                  </Alert>
+                )}
                 <FormField
                   control={loginForm.control}
                   name="email"
@@ -181,6 +201,13 @@ export default function AuthComponent() {
                 onSubmit={registerForm.handleSubmit(handleRegister)}
                 className="space-y-4"
               >
+                {registerError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{registerError}</AlertDescription>
+                  </Alert>
+                )}
                 <FormField
                   control={registerForm.control}
                   name="name"
