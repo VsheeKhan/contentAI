@@ -1,9 +1,18 @@
 import jwt from 'jsonwebtoken';
+import { userType } from '@/models/user';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your_jwt_secret_key'; // Replace with your secret key or use environment variable
+const SECRET_KEY = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-export function generateToken(payload: { name: string; email: string }) {
-  return jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' }); // Token expires in 1 hour
+export function generateToken(user: any) {
+  const name = user.name;
+  const email = user.email;
+  const isAdmin = user.userType === userType.admin ? true : false;
+  const payload = {
+    name, 
+    email, 
+    isAdmin
+  }
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: '1d' }); // Token expires in 1 hour
 }
 
 export function verifyToken(token: string) {

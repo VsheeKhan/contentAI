@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectToDatabase from '../lib/mongodb';
 import { findUserByEmail, createUser, authenticateUser } from '../services/userService';
+import Plan from '../models/plan';
+import { createSubscription } from '../services/subscriptionService';
 import { generateToken } from '../utils/jwt';
 
 type Data = {
@@ -27,7 +29,17 @@ export default async function registerUser(req: NextApiRequest, res: NextApiResp
         return res.status(400).json({ message: 'User already exists' });
       }
 
-      await createUser({ name, email, password });
+      const newUser:any = await createUser({ name, email, password });
+
+      // Assign trial to the new user
+      const freePlan:any = await Plan.findOne({ name: 'trial' });
+      if (!freePlan) {
+        return res.status(500).json({ message: 'trial not found. Contact admin.' });
+      }
+
+      // Create a subscription for the new user using the free plan
+      await createSubscription({ userId: newUser._id, planId: freePlan._id });
+
       res.status(201).json({ message: 'User registered successfully' });
     } catch (error: any) {
       console.error(error);
@@ -51,9 +63,8 @@ export async function loginUser(req: NextApiRequest, res: NextApiResponse<Data>)
 
     try {
       const user = await authenticateUser(email, password);
-
       // Generate JWT Token
-      const token = generateToken({ name: user.name, email: user.email });
+      const token = generateToken(user);
 
       res.status(200).json({
         message: 'Login successful',
@@ -76,7 +87,7 @@ export async function getUserInfo(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
       try {
         // Retrieve user data from the request object
-        const { email } = req.user as { name: string; email: string }; // Add any other fields as needed
+        const { email } = req.user as { name: string; email: string };
   
         // Fetch user from the database
         const user = await findUserByEmail(email);

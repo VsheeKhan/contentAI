@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 import { verifyToken } from '../utils/jwt';
 
-export function authenticate(handler: NextApiHandler) {
+export function authenticate(handler: NextApiHandler, requireAdmin: boolean = false) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const authHeader = req.headers.authorization;
 
@@ -26,13 +26,17 @@ export function authenticate(handler: NextApiHandler) {
       // Attach user data to the request object
       req.user = decoded;
 
+      // If admin access is required, check for isAdmin flag
+      if (requireAdmin && !(decoded as any).isAdmin) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      // Proceed with the request if the user is authenticated and authorized
       return handler(req, res);
     } catch (error) {
       if (error instanceof Error) {
-        console.error('Token verification error:', error.message);
         return res.status(401).json({ message: 'Invalid token', error: error.message });
       } else {
-        console.error('Unknown error during token verification:', error);
         return res.status(401).json({ message: 'Invalid token', error: 'Unknown error' });
       }
     }
