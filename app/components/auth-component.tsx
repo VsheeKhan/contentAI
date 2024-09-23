@@ -25,7 +25,8 @@ import { EyeIcon, EyeOffIcon, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useAuth } from "@/app/hooks/useAuth";
+import { useAuth } from "@/app/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -48,6 +49,7 @@ export default function AuthComponent() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const { login } = useAuth();
+  const router = useRouter();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -76,8 +78,10 @@ export default function AuthComponent() {
       });
       if (response.ok) {
         const data = await response.json();
-        login(data.token, data.name, data.email);
+        const isAdmin: boolean = await login(data.token, data.name, data.email);
         console.log("Login successful");
+        if (isAdmin) router.push("/admin/dashboard");
+        else router.push("/");
       } else {
         const errorData = await response.json();
         console.error("Login failed: ", errorData);
