@@ -4,9 +4,10 @@ import {
   findUserByEmail,
   createUser,
   authenticateUser,
+  getPaginatedUsers,
+  getUsersByPlan,
 } from "../services/userService";
 import Plan from "../models/plan";
-import { userType } from "@/models/user";
 import { createSubscription } from "../services/subscriptionService";
 import { generateToken } from "../utils/jwt";
 
@@ -123,6 +124,62 @@ export async function getUserInfo(req: NextApiRequest, res: NextApiResponse) {
       res
         .status(500)
         .json({ message: "Internal Server Error", error: error.message });
+    }
+  } else {
+    res.setHeader("Allow", ["GET"]);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function getUsersHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
+    try {
+      await connectToDatabase();
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 20;
+      const result = await getPaginatedUsers(page, limit);
+
+      res.status(200).json(result);
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          message: "Internal Server Error",
+          error: (error as Error).message,
+        });
+    }
+  } else {
+    res.setHeader("Allow", ["GET"]);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function getUsersByPlanHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
+    try {
+      await connectToDatabase();
+      const plan = req.query.plan as string;
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 20;
+
+      if (!plan) {
+        return res.status(400).json({ message: "Plan name is required" });
+      }
+      const result = await getUsersByPlan(plan, page, limit);
+      res.status(200).json(result);
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          message: "Internal Server Error",
+          error: (error as Error).message,
+        });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
