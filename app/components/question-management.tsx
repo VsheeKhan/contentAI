@@ -23,7 +23,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
 
-type QuestionType = "Input text" | "Single Choice" | "Yes/No";
+type QuestionType =
+  | "Input text"
+  | "Single Choice"
+  | "Multiple Choices"
+  | "Yes/No";
 
 interface Question {
   id: number;
@@ -63,6 +67,7 @@ export default function QuestionManagement() {
   const [newQuestionType, setNewQuestionType] =
     useState<QuestionType>("Input text");
   const [newOptions, setNewOptions] = useState("");
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
   useEffect(() => {
     fetchQuestions();
@@ -87,6 +92,8 @@ export default function QuestionManagement() {
               ? "Single Choice"
               : question.questionType === "radio"
               ? "Yes/No"
+              : question.questionType === "mcq"
+              ? "Multiple Choices"
               : "Input text",
         };
         if (question.options) {
@@ -113,13 +120,15 @@ export default function QuestionManagement() {
         return "single_choice";
       case "Yes/No":
         return "radio";
-      // Add other mappings
+      case "Multiple Choices":
+        return "mcq";
       default:
         return "text";
     }
   };
 
   const addQuestion = async () => {
+    setError(null);
     if (newQuestion) {
       const questionToAdd: any = {
         question: newQuestion,
@@ -127,7 +136,11 @@ export default function QuestionManagement() {
         status: 1,
         options: null,
       };
-      if (newQuestionType === "Single Choice" && newOptions) {
+      if (
+        (newQuestionType === "Single Choice" ||
+          newQuestionType === "Multiple Choices") &&
+        newOptions
+      ) {
         const optionsArray = newOptions
           .split(",")
           .map((option) => option.trim());
@@ -135,6 +148,12 @@ export default function QuestionManagement() {
           acc[`option${index + 1}`] = option;
           return acc;
         }, {} as Record<string, any>);
+      }
+      if (newQuestionType === "Yes/No") {
+        questionToAdd.options = {
+          option1: "Yes",
+          option2: "No",
+        };
       }
       try {
         const response = await authFetch("/api/questions", {
@@ -155,6 +174,8 @@ export default function QuestionManagement() {
           type:
             addedQuestion.questionType === "single_choice"
               ? "Single Choice"
+              : addedQuestion.questionType === "mcq"
+              ? "Multiple Choices"
               : addedQuestion.questionType === "radio"
               ? "Yes/No"
               : "Input text",
@@ -171,10 +192,13 @@ export default function QuestionManagement() {
           "An error occurred while adding the question. Please try again."
         );
       }
+    } else {
+      setError("Please enter the question to be added.");
     }
   };
 
   const removeQuestion = async (id: number) => {
+    setError(null);
     try {
       const response = await authFetch(`/api/questions/${id}`, {
         method: "DELETE",
@@ -187,6 +211,91 @@ export default function QuestionManagement() {
       console.error("Error removing question:", error);
       setError(
         "An error occurred while removing the question. Please try again."
+      );
+    }
+  };
+
+  const startEditing = (question: Question) => {
+    setEditingQuestion({ ...question });
+  };
+
+  const cancelEditing = () => {
+    setEditingQuestion(null);
+  };
+
+  const updateQuestion = async () => {
+    if (!editingQuestion) return;
+
+    setError(null);
+    try {
+      const questionToUpdate: any = {
+        question: editingQuestion.text,
+        questionType: mapQuestionType(editingQuestion.type),
+        status: 1,
+        options: null,
+      };
+
+      if (
+        (editingQuestion.type === "Single Choice" ||
+          editingQuestion.type === "Multiple Choices") &&
+        editingQuestion.options
+      ) {
+        questionToUpdate.options = editingQuestion.options.reduce(
+          (acc, option, index) => {
+            acc[`option${index + 1}`] = option;
+            return acc;
+          },
+          {} as Record<string, any>
+        );
+      }
+
+      if (editingQuestion.type === "Yes/No") {
+        questionToUpdate.options = {
+          option1: "Yes",
+          option2: "No",
+        };
+      }
+
+      const response = await authFetch(`/api/questions/${editingQuestion.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(questionToUpdate),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update question");
+      }
+
+      const updatedQuestion = await response.json();
+      console.log("Updated Question: ", updatedQuestion);
+      setQuestions(
+        questions.map((q) =>
+          q.id === editingQuestion.id
+            ? {
+                ...q,
+                text: updatedQuestion.question,
+                type:
+                  updatedQuestion.questionType === "single_choice"
+                    ? "Single Choice"
+                    : updatedQuestion.questionType === "mcq"
+                    ? "Multiple Choices"
+                    : updatedQuestion.questionType === "radio"
+                    ? "Yes/No"
+                    : "Input text",
+                options: updatedQuestion.options
+                  ? Object.values(updatedQuestion.options)
+                  : undefined,
+              }
+            : q
+        )
+      );
+      setEditingQuestion(null);
+    } catch (error) {
+      console.error("Error updating question:", error);
+      setError(
+        "An error occurred while updating the question. Please try again."
       );
     }
   };
@@ -230,11 +339,13 @@ export default function QuestionManagement() {
               <SelectItem value="Input text">Input text</SelectItem>
               <SelectItem value="Single Choice">Single Choice</SelectItem>
               <SelectItem value="Yes/No">Yes/No</SelectItem>
+              <SelectItem value="Multiple Choices">Multiple Choices</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-      {newQuestionType === "Single Choice" && (
+      {(newQuestionType === "Single Choice" ||
+        newQuestionType === "Multiple Choices") && (
         <div>
           <Label htmlFor="options">Options (comma-separated)</Label>
           <Input
@@ -258,18 +369,103 @@ export default function QuestionManagement() {
         <TableBody>
           {questions.map((question) => (
             <TableRow key={question.id}>
-              <TableCell>{question.text}</TableCell>
-              <TableCell>{question.type}</TableCell>
               <TableCell>
-                {question.options ? question.options.join(", ") : "-"}
+                {editingQuestion?.id === question.id ? (
+                  <Input
+                    value={editingQuestion.text}
+                    onChange={(e) =>
+                      setEditingQuestion({
+                        ...editingQuestion,
+                        text: e.target.value,
+                      })
+                    }
+                  />
+                ) : (
+                  question.text
+                )}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="destructive"
-                  onClick={() => removeQuestion(question.id)}
-                >
-                  Remove
-                </Button>
+                {editingQuestion?.id === question.id ? (
+                  <Select
+                    value={editingQuestion.type}
+                    onValueChange={(value: QuestionType) =>
+                      setEditingQuestion({
+                        ...editingQuestion,
+                        type: value,
+                        options:
+                          value === "Yes/No"
+                            ? ["Yes", "No"]
+                            : editingQuestion.options,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Input text">Input text</SelectItem>
+                      <SelectItem value="Single Choice">
+                        Single Choice
+                      </SelectItem>
+                      <SelectItem value="Yes/No">Yes/No</SelectItem>
+                      <SelectItem value="Multiple Choices">
+                        Multiple Choices
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  question.type
+                )}
+              </TableCell>
+              <TableCell>
+                {editingQuestion?.id === question.id &&
+                (editingQuestion.type === "Single Choice" ||
+                  editingQuestion.type === "Multiple Choices") ? (
+                  <Input
+                    value={editingQuestion.options?.join(", ") || ""}
+                    onChange={(e) =>
+                      setEditingQuestion({
+                        ...editingQuestion,
+                        options: e.target.value.split(",").map((o) => o.trim()),
+                      })
+                    }
+                    placeholder="Enter options, separated by commas"
+                  />
+                ) : editingQuestion?.id === question.id &&
+                  editingQuestion.type === "Input text" ? (
+                  "-"
+                ) : question.options ? (
+                  question.options.join(", ")
+                ) : (
+                  "-"
+                )}
+              </TableCell>
+              <TableCell>
+                {editingQuestion?.id === question.id ? (
+                  <>
+                    <Button onClick={updateQuestion} className="mr-2">
+                      Save
+                    </Button>
+                    <Button onClick={cancelEditing} variant="outline">
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => startEditing(question)}
+                      className="mr-2"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => removeQuestion(question.id)}
+                    >
+                      Remove
+                    </Button>
+                  </>
+                )}
               </TableCell>
             </TableRow>
           ))}

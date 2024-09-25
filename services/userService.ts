@@ -1,13 +1,8 @@
-<<<<<<< HEAD
 import User from '../models/user';
 import Subscription from '../models/subscription';
 import Plan from '../models/plan';
 import { differenceInDays, subMonths, startOfMonth } from 'date-fns';
 import bcrypt from 'bcryptjs';
-=======
-import User from "../models/user";
-import bcrypt from "bcryptjs";
->>>>>>> ca313be (Add ProtectedLayout component layer, custom hook to redirect based on user type, basic question management component and dashboard)
 
 interface UserInput {
   name: string;

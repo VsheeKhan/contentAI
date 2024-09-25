@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectToDatabase from '../lib/mongodb';
 import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan, getUserRegistrationCountLast6Months, updateUserRoleStatusAndPlan } from '../services/userService';
@@ -18,6 +19,14 @@ import { userType } from "@/models/user";
 import { createSubscription } from "../services/subscriptionService";
 import { generateToken } from "../utils/jwt";
 >>>>>>> ca313be (Add ProtectedLayout component layer, custom hook to redirect based on user type, basic question management component and dashboard)
+=======
+import type { NextApiRequest, NextApiResponse } from 'next';
+import connectToDatabase from '../lib/mongodb';
+import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan } from '../services/userService';
+import Plan from '../models/plan';
+import { createSubscription } from '../services/subscriptionService';
+import { generateToken } from '../utils/jwt';
+>>>>>>> cef5e54 (Resolved merge conflicts)
 
 type Data = {
   message: string;
@@ -178,6 +187,7 @@ export async function getUsersByPlanHandler(req: NextApiRequest, res: NextApiRes
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }
+<<<<<<< HEAD
 
 // Handler to get user registration count over the last 6 months
 export async function getUserRegistrationCountHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -215,3 +225,5 @@ export async function updateUserRoleStatusAndPlanHandler(req: NextApiRequest, re
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }
+=======
+>>>>>>> cef5e54 (Resolved merge conflicts)
