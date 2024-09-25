@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import connectToDatabase from '../lib/mongodb';
-import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan } from '../services/userService';
+import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan, getUserRegistrationCountLast6Months, updateUserRoleStatusAndPlan } from '../services/userService';
 import Plan from '../models/plan';
 import { createSubscription } from '../services/subscriptionService';
 import { generateToken } from '../utils/jwt';
@@ -142,6 +142,43 @@ export async function getUsersByPlanHandler(req: NextApiRequest, res: NextApiRes
     }
   } else {
     res.setHeader('Allow', ['GET']);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+// Handler to get user registration count over the last 6 months
+export async function getUserRegistrationCountHandler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    try {
+      await connectToDatabase();
+      const registrationCounts = await getUserRegistrationCountLast6Months();
+      res.status(200).json(registrationCounts);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+    }
+  } else {
+    res.setHeader('Allow', ['GET']);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+// Handler to update user role, status, and plan
+export async function updateUserRoleStatusAndPlanHandler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'PUT') {
+    try {
+      await connectToDatabase();
+      const { userId, newUserType, newStatus, newPlanName } = req.body;
+
+      if (!userId || newUserType === undefined || newStatus === undefined || !newPlanName) {
+        return res.status(400).json({ message: 'userId, newUserType, newStatus, and newPlanName are required' });
+      }
+      const result = await updateUserRoleStatusAndPlan(userId, newUserType, newStatus, newPlanName);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+    }
+  } else {
+    res.setHeader('Allow', ['PUT']);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }

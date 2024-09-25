@@ -1,7 +1,7 @@
 import User from '../models/user';
 import Subscription from '../models/subscription';
 import Plan from '../models/plan';
-import { differenceInDays } from 'date-fns';
+import { differenceInDays, subMonths, startOfMonth } from 'date-fns';
 import bcrypt from 'bcryptjs';
 
 interface UserInput {
@@ -142,5 +142,87 @@ export async function getUsersByPlan(planName: string, page: number, limit: numb
     totalPages,
     currentPage: page,
     limit,
+  };
+}
+
+function getLastSixMonths() {
+  const months = [];
+  const now = new Date();
+
+  for (let i = 5; i >= 0; i--) {
+    const date = subMonths(now, i);
+    months.push({
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+    });
+  }
+  return months;
+}
+
+export async function getUserRegistrationCountLast6Months() {
+  const sixMonthsAgo = subMonths(new Date(), 6);
+  const startDate = startOfMonth(sixMonthsAgo);
+  const registrationCounts = await User.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate },
+      },
+    },
+    {
+      $group: {
+        _id: { month: { $month: '$createdAt' }, year: { $year: '$createdAt' } },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 },
+    },
+  ]);
+  const lastSixMonths = getLastSixMonths();
+  const mergedCounts = lastSixMonths.map((month) => {
+    const found = registrationCounts.find(
+      (r) => r._id.month === month.month && r._id.year === month.year
+    );
+    return {
+      month: month.month,
+      year: month.year,
+      count: found ? found.count : 0,
+    };
+  });
+
+  return mergedCounts;
+}
+
+export async function updateUserRoleStatusAndPlan(userId: string, newUserType: number, newStatus: number, newPlanName: string) {
+  const user:any = await User.findById(userId);
+  if (!user) {
+    throw new Error(`User with ID ${userId} not found`);
+  }
+  if (![1, 2].includes(newUserType)) {
+    throw new Error('Invalid userType');
+  }
+  user.userType = newUserType;
+  if (![1, 2].includes(newStatus)) {
+    throw new Error('Invalid status');
+  }
+  user.status = newStatus;
+
+  await user.save();
+  const newPlan = await Plan.findOne({ name: newPlanName });
+  if (!newPlan) {
+    throw new Error(`Plan "${newPlanName}" not found`);
+  }
+  const subscription:any = await Subscription.findOne({ userId });
+  if (!subscription) {
+    throw new Error(`Subscription for user with ID ${userId} not found`);
+  }
+  subscription.planId = newPlan._id;
+  await subscription.save();
+  return {
+    message: 'user updated successfully',
+    userId,
+    newRole: newUserType === 1 ? 'admin' : 'user',
+    newStatus: newStatus === 1 ? 'active' : 'inactive',
+    newPlan: newPlan.name,
   };
 }
