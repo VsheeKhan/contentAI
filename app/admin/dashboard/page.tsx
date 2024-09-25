@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Users, FileQuestion, CreditCard } from "lucide-react";
-// import AnalyticsOverview from "./analytics-overview";
+import AnalyticsOverview from "../../components/analytics-management";
 import QuestionManagement from "../../components/question-management";
 import ProtectedLayout from "@/app/layout/protected-layout";
-// import UserManagement from "./user-management";
-// import FreeTrialMonitoring from "./free-trial-monitoring";
-// import SubscriptionControl from "./subscription-control";
+import UserManagement from "../../components/user-management";
+import FreeTrialMonitoring from "../../components/free-trial-monitoring";
+import SubscriptionControl from "../../components/subscription-control";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("questions");
@@ -45,17 +45,19 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="analytics">
-            {/* <AnalyticsOverview /> */}
+            <AnalyticsOverview />
           </TabsContent>
           <TabsContent value="questions">
             <QuestionManagement />
           </TabsContent>
-          <TabsContent value="users">{/* <UserManagement /> */}</TabsContent>
+          <TabsContent value="users">
+            <UserManagement />
+          </TabsContent>
           <TabsContent value="trials">
-            {/* <FreeTrialMonitoring /> */}
+            <FreeTrialMonitoring />
           </TabsContent>
           <TabsContent value="subscriptions">
-            {/* <SubscriptionControl /> */}
+            <SubscriptionControl />
           </TabsContent>
         </Tabs>
       </div>
