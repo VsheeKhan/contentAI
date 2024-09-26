@@ -109,10 +109,9 @@ export default function AnalyticsOverview() {
         throw new Error("Failed to fetch users sign up data");
       }
       const data = await response.json();
-      const signupData = data.map((item: UserSignUpData) => ({
-        month: months[item.month - 1],
-        count: item.count,
-      }));
+      const signupData = data.map((item: UserSignUpData) => {
+        return { month: months[item.month - 1], count: item.count };
+      });
       setUserSignUpData(signupData);
     } catch (error) {
       console.error("Error fetching user signup data:", error);
@@ -194,7 +193,7 @@ export default function AnalyticsOverview() {
                 <Legend />
                 <Line
                   type="monotone"
-                  dataKey="signup count"
+                  dataKey="count"
                   stroke="#8884d8"
                   activeDot={{ r: 8 }}
                 />
