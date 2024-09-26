@@ -138,7 +138,16 @@ export default function UserManagement() {
 
       const updatedUser = await response.json();
       setUsers(
-        users.map((user) => (user.id === updatedUser._id ? updatedUser : user))
+        users.map((user) =>
+          user.id === updatedUser._id
+            ? {
+                ...user,
+                plan: updatedUser.newPlan,
+                role: updatedUser.newRole,
+                status: updatedUser.newStatus,
+              }
+            : user
+        )
       );
       setEditingUser(null);
     } catch (error) {
