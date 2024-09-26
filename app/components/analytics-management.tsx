@@ -21,6 +21,26 @@ type SubscriptionData = {
   subscriptions: number;
 };
 
+type UserSignUpData = {
+  month: number;
+  count: number;
+};
+
+const months = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export default function AnalyticsOverview() {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalUsersPercentageChange, setTotalUsersPercentageChange] =
@@ -34,8 +54,13 @@ export default function AnalyticsOverview() {
   const [subscriptionData, setSubscriptionData] = useState<
     Array<SubscriptionData>
   >([]);
+  const [userSignUpData, setUserSignUpData] = useState<Array<UserSignUpData>>(
+    []
+  );
+
   useEffect(() => {
     fetchUserStats();
+    fetchUserSignUpData();
   }, []);
 
   const fetchUserStats = async () => {
@@ -77,20 +102,22 @@ export default function AnalyticsOverview() {
     }
   };
 
-  const userSignupsData = [
-    { month: "Jan", signups: 65 },
-    { month: "Feb", signups: 59 },
-    { month: "Mar", signups: 80 },
-    { month: "Apr", signups: 81 },
-    { month: "May", signups: 56 },
-    { month: "Jun", signups: 55 },
-  ];
-
-  // const subscriptionData = [
-  //   { plan: "Basic", subscriptions: 300 },
-  //   { plan: "Pro", subscriptions: 450 },
-  //   { plan: "Enterprise", subscriptions: 100 },
-  // ];
+  const fetchUserSignUpData = async () => {
+    try {
+      const response = await authFetch("/api/users-registration-count");
+      if (!response.ok) {
+        throw new Error("Failed to fetch users sign up data");
+      }
+      const data = await response.json();
+      const signupData = data.map((item: UserSignUpData) => ({
+        month: months[item.month - 1],
+        count: item.count,
+      }));
+      setUserSignUpData(signupData);
+    } catch (error) {
+      console.error("Error fetching user signup data:", error);
+    }
+  };
 
   const aiUsageData = [
     { day: "Mon", usage: 12 },
@@ -159,7 +186,7 @@ export default function AnalyticsOverview() {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={userSignupsData}>
+              <LineChart data={userSignUpData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -167,7 +194,7 @@ export default function AnalyticsOverview() {
                 <Legend />
                 <Line
                   type="monotone"
-                  dataKey="signups"
+                  dataKey="signup count"
                   stroke="#8884d8"
                   activeDot={{ r: 8 }}
                 />

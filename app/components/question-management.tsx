@@ -268,7 +268,6 @@ export default function QuestionManagement() {
       }
 
       const updatedQuestion = await response.json();
-      console.log("Updated Question: ", updatedQuestion);
       setQuestions(
         questions.map((q) =>
           q.id === editingQuestion.id
