@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -17,53 +17,95 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import { authFetch } from "../utils/authFetch";
 
+type Status = "active" | "inactive";
+
+type SubscribedUsers = {
+  id: string;
+  name: string;
+  email: string;
+  plan: string;
+  status: Status;
+  nextBillingDate: Date;
+};
 export default function SubscriptionControl() {
-  const [subscriptions, setSubscriptions] = useState([
-    {
-      id: 1,
-      user: "David Lee",
-      plan: "Pro",
-      status: "Active",
-      nextBilling: "2023-07-15",
-    },
-    {
-      id: 2,
-      user: "Emma Watson",
-      plan: "Basic",
-      status: "Cancelled",
-      nextBilling: "N/A",
-    },
-    {
-      id: 3,
-      user: "Frank Sinatra",
-      plan: "Enterprise",
-      status: "Active",
-      nextBilling: "2023-08-01",
-    },
-  ]);
+  const [subscribedUsers, setSubscribedUsers] = useState<
+    Array<SubscribedUsers>
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const changePlan = (userId: number, newPlan: string) => {
-    setSubscriptions(
-      subscriptions.map((sub) =>
+  useEffect(() => {
+    fetchSubscribedUsers();
+  }, []);
+
+  const fetchSubscribedUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authFetch("/api/users-by-plan?plan=pro");
+      if (!response.ok) {
+        throw new Error("Failed to fetch all users by plan");
+      }
+      const data = await response.json();
+
+      const usersData: Array<SubscribedUsers> = data.users.map((user: any) => ({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        plan: user.subscription.plan,
+        status: user.subscription.status === 1 ? "active" : "inactive",
+        nextBillingDate: new Date(user.subscription.endDateTime),
+      }));
+      setSubscribedUsers(usersData);
+    } catch (error) {
+      setError(
+        "An error occurred while fetching all users by plan. Please try again later."
+      );
+      console.error("Error fetching users by plan:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const changePlan = (userId: string, newPlan: string) => {
+    setSubscribedUsers(
+      subscribedUsers.map((sub) =>
         sub.id === userId ? { ...sub, plan: newPlan } : sub
       )
     );
   };
 
-  const openStripeManagement = (userId: number) => {
+  const openStripeManagement = (userId: string) => {
     // This function would typically open Stripe's customer management interface
     // For this example, we'll just log to the console
     console.log(`Opening Stripe management for user ID: ${userId}`);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="mr-2 h-16 w-16 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">User Subscriptions</h2>
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>User</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
             <TableHead>Current Plan</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Next Billing Date</TableHead>
@@ -71,12 +113,13 @@ export default function SubscriptionControl() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {subscriptions.map((sub) => (
+          {subscribedUsers.map((sub) => (
             <TableRow key={sub.id}>
-              <TableCell>{sub.user}</TableCell>
+              <TableCell>{sub.name}</TableCell>
+              <TableCell>{sub.email}</TableCell>
               <TableCell>{sub.plan}</TableCell>
               <TableCell>{sub.status}</TableCell>
-              <TableCell>{sub.nextBilling}</TableCell>
+              <TableCell>{sub.nextBillingDate.toDateString()}</TableCell>
               <TableCell>
                 <Select
                   onValueChange={(value) => changePlan(sub.id, value)}
@@ -86,9 +129,8 @@ export default function SubscriptionControl() {
                     <SelectValue placeholder="Change plan" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Basic">Basic</SelectItem>
-                    <SelectItem value="Pro">Pro</SelectItem>
-                    <SelectItem value="Enterprise">Enterprise</SelectItem>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
