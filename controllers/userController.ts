@@ -51,9 +51,8 @@ export async function loginUser(req: NextApiRequest, res: NextApiResponse<Data>)
 
     try {
       const user = await authenticateUser(email, password);
-
       // Generate JWT Token
-      const token = generateToken({ name: user.name, email: user.email });
+      const token = generateToken(user);
 
       res.status(200).json({
         message: 'Login successful',
@@ -76,7 +75,7 @@ export async function getUserInfo(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
       try {
         // Retrieve user data from the request object
-        const { email } = req.user as { name: string; email: string }; // Add any other fields as needed
+        const { email } = req.user as { name: string; email: string };
   
         // Fetch user from the database
         const user = await findUserByEmail(email);
