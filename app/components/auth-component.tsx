@@ -81,7 +81,7 @@ export default function AuthComponent() {
         const isAdmin: boolean = await login(data.token, data.name, data.email);
         console.log("Login successful");
         if (isAdmin) router.push("/admin/dashboard");
-        else router.push("/");
+        else router.push("/home");
       } else {
         const errorData = await response.json();
         console.error("Login failed: ", errorData);

@@ -7,7 +7,6 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-// import { useRouter } from "next/navigation";
 
 interface AuthUser {
   name: string;
@@ -25,7 +24,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  // const router = useRouter();
   const [loginResolver, setLoginResolver] = useState<
     ((value: boolean) => void) | null
   >(null);
@@ -65,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("authToken");
     setUser(null);
-    // router.push("/auth");
   };
 
   return (
