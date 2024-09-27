@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import connectToDatabase from '../lib/mongodb';
 import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan, getUserRegistrationCountLast6Months, updateUserRoleStatusAndPlan } from '../services/userService';
 import Plan from '../models/plan';
+import DigitalPersona from '../models/digitalPersona';
 import { createSubscription } from '../services/subscriptionService';
 import { generateToken } from '../utils/jwt';
 
@@ -11,6 +12,7 @@ type Data = {
   email?: string;
   token?: string;
   error?: string;
+  isPersonaAvailable ?: boolean;
 };
 
 export default async function registerUser(req: NextApiRequest, res: NextApiResponse<Data>) {
@@ -65,11 +67,13 @@ export async function loginUser(req: NextApiRequest, res: NextApiResponse<Data>)
       const user = await authenticateUser(email, password);
       // Generate JWT Token
       const token = generateToken(user);
-
+      const existingPersona = await DigitalPersona.findOne({ userId: user._id });
+      const isPersonaAvailable = existingPersona ? true : false;
       res.status(200).json({
         message: 'Login successful',
         name: user.name,
         email: user.email,
+        isPersonaAvailable,
         token,
       });
     } catch (error: any) {
