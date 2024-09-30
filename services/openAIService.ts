@@ -1,5 +1,8 @@
 import { OpenAI } from 'openai';
 import DigitalPersona from '../models/digitalPersona';
+import Token from '@/models/tokens';
+import tiktoken from 'tiktoken';
+
 // Initialize OpenAI API client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Ensure your API key is stored in environment variables
@@ -57,7 +60,12 @@ export async function generatePost(userId:string, topic: string, industry: strin
 		],
 		max_tokens: 4096,
 	  });
-  
+	  const text: any = response.choices[0].message?.content;
+	  const tokenizer = tiktoken.encoding_for_model('gpt-4o-mini');
+	  const tokens = await tokenizer.encode(text);
+	  const cost = (tokens.length / 1000000) * Number(process.env.COST_PER_MILLION_TOKEN);
+	  const saveToken = new Token({tokens: tokens.length, cost});
+	  await saveToken.save();
 	  return response.choices[0].message?.content;
 	} catch (error: any) {
 	  throw new Error(`OpenAI API error: ${error.message}`);
