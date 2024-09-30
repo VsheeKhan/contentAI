@@ -1,7 +1,8 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { createPlanHandler, getPlansHandler } from '../../controllers/planController';
 import { authenticate } from '../../middlewares/authMiddleware';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     await authenticate(createPlanHandler, true)(req, res);  // Only admins can create plans
   } else if (req.method === 'GET') {

@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import {
     getPlanByIdHandler,
     updatePlanHandler,
@@ -5,7 +6,7 @@ import {
   } from '../../../controllers/planController';
   import { authenticate } from '../../../middlewares/authMiddleware';
   
-  export default async function handler(req, res) {
+  export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
       await getPlanByIdHandler(req, res);
     } else if (req.method === 'PUT') {
