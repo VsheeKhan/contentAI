@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -10,14 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-// import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, EyeIcon, EyeOffIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -26,7 +20,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { EyeIcon, EyeOffIcon, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuth } from "@/app/hooks/useAuth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -36,7 +35,7 @@ const loginSchema = z.object({
 });
 
 const registerSchema = loginSchema.extend({
-  name: z
+  fullName: z
     .string()
     .min(2, { message: "Full name must be at least 2 characters" }),
 });
@@ -46,9 +45,9 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthComponent() {
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
+  const { login } = useAuth();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -61,7 +60,7 @@ export default function AuthComponent() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      fullName: "",
       email: "",
       password: "",
     },
@@ -76,11 +75,12 @@ export default function AuthComponent() {
         body: JSON.stringify(values),
       });
       if (response.ok) {
+        const data = await response.json();
+        login(data.token, data.name, data.email);
         console.log("Login successful");
-        router.push("/");
       } else {
-        console.error("Login failed");
         const errorData = await response.json();
+        console.error("Login failed: ", errorData);
         setLoginError(errorData.message || "Login failed. Please try again.");
       }
     } catch (error) {
@@ -99,10 +99,13 @@ export default function AuthComponent() {
       });
       if (response.ok) {
         console.log("Registration successful");
-        router.push("/");
+        loginForm.setValue("email", values.email);
+        loginForm.setValue("password", values.password);
+        // Automatically log in after successful registration
+        await handleLogin({ email: values.email, password: values.password });
       } else {
-        console.error("Registration failed");
         const errorData = await response.json();
+        console.error("Registration failed: ", errorData);
         setRegisterError(
           errorData.message || "Registration failed. Please try again."
         );
@@ -210,7 +213,7 @@ export default function AuthComponent() {
                 )}
                 <FormField
                   control={registerForm.control}
-                  name="name"
+                  name="fullName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
