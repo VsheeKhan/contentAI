@@ -46,6 +46,12 @@ export async function generateDigitalPersona(queryPrompt: string) {
 export async function generatePost(userId:string, topic: string, industry: string, tone: string, platform: string) {
 	try {
 	  const persona:any = await DigitalPersona.findOne({ userId });
+	  let userQuery: string;
+	  if(industry != "" && tone != "" && platform != ""){
+		userQuery = `Create a ${tone} social media post about ${topic} for the ${industry} industry, tailored for ${platform}. Ensure the content is engaging, emojis, and follows best practices for the platform.The content should not include any bold headings or start with ** and must utilize all the tokens.`
+	  }else{
+		userQuery = `Create a social media post about ${topic}. Ensure the content is engaging, emojis, and follows best practices for the platform.The content should not include any bold headings or start with ** and must utilize all the tokens.`
+	  }
 	  const response = await openai.chat.completions.create({
 		model: 'gpt-4o-mini',
 		messages: [
@@ -55,7 +61,7 @@ export async function generatePost(userId:string, topic: string, industry: strin
 		  },
 		  {
 			role: 'user',
-			content: `Create a ${tone} social media post about ${topic} for the ${industry} industry, tailored for ${platform}. Ensure the content is engaging, emojis, and follows best practices for the platform.The content should not include any bold headings or start with ** and must utilize all the tokens.`,
+			content: userQuery,
 		  },
 		],
 		max_tokens: 4096,
@@ -71,3 +77,21 @@ export async function generatePost(userId:string, topic: string, industry: strin
 	  throw new Error(`OpenAI API error: ${error.message}`);
 	}
   }
+
+export async function generatePostTopics() {
+	const response = await openai.chat.completions.create({
+		model: 'gpt-4o-mini',
+		messages: [
+		  {
+			role: 'system',
+			content: "You are a highly skilled social media strategist with expertise in identifying trending and engaging topics for social media platforms. Your task is to generate a list of highly engaging social media topics that are relevant, attention-grabbing, and designed to encourage high user interaction. These topics should cover a variety of trends, industries, or themes that appeal to a broad audience"
+		  },
+		  {
+			role: 'user',
+			content: "Generate 10 highly engaging topics for social media posts that will capture attention and promote interaction. The topics should be creative, relevant to current trends, and versatile across different platforms. Return the topics in an array of strings format",
+		  },
+		],
+		max_tokens: 4096,
+	});
+	return response.choices[0].message?.content;
+}
