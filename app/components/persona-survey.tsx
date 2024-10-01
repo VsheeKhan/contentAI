@@ -175,6 +175,7 @@ export default function PersonaSurvey() {
     }
 
     console.log("Survey completed:", answers);
+    setError(null);
     setIsGenerating(true);
     try {
       const response = await fetch("/api/generate-persona", {
@@ -279,10 +280,6 @@ export default function PersonaSurvey() {
     );
   }
 
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
-  }
-
   if (questions.length === 0) {
     return <div className="text-center">No questions available.</div>;
   }
@@ -321,6 +318,7 @@ export default function PersonaSurvey() {
       <div className="text-sm text-gray-500">
         Question {currentQuestion + 1} of {questions.length}
       </div>
+      {error && <div className="text-red-500">{error}</div>}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "./contexts/auth-context";
+import InitialRouter from "./components/initial-router";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,7 +31,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <main className="h-screen flex justify-center items-center">
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <InitialRouter>{children}</InitialRouter>
+          </AuthProvider>
         </main>
       </body>
     </html>

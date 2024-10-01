@@ -15,7 +15,7 @@ interface AuthUser {
 }
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: AuthUser | null | undefined;
   login: (token: string, name: string, email: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -23,7 +23,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
   const [loginResolver, setLoginResolver] = useState<
     ((value: boolean) => void) | null
   >(null);
@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: payload.email,
         isAdmin: payload.isAdmin,
       });
+    } else {
+      setUser(null);
     }
   }, []);
 
