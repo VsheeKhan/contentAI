@@ -8,8 +8,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Ensure your API key is stored in environment variables
 });
 
-export async function generateDigitalPersona(queryPrompt: string) {
+export async function generateDigitalPersona(queryPrompt: any[]) {
   try {
+	const formattedPrompt = queryPrompt.map(item => {
+		return `${item["question"]}: ${item["answer"]}\n`;
+	  }).join("\n");
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
@@ -31,7 +34,7 @@ export async function generateDigitalPersona(queryPrompt: string) {
         },
         {
           role: 'user',
-          content: queryPrompt,
+          content: formattedPrompt,
         },
       ],
       max_tokens: 4096,
