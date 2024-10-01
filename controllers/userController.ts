@@ -1,18 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import connectToDatabase from "../lib/mongodb";
-import {
-  findUserByEmail,
-  createUser,
-  authenticateUser,
-  getPaginatedUsers,
-  getUsersByPlan,
-  getUserRegistrationCountLast6Months,
-  updateUserRoleStatusAndPlan,
-} from "../services/userService";
-import Plan from "../models/plan";
-import DigitalPersona from "../models/digitalPersona";
-import { createSubscription } from "../services/subscriptionService";
-import { generateToken } from "../utils/jwt";
+import type { NextApiRequest, NextApiResponse } from 'next';
+import connectToDatabase from '../lib/mongodb';
+import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan, getUserRegistrationCountLast6Months, updateUserRoleStatusAndPlan } from '../services/userService';
+import Plan from '../models/plan';
+import DigitalPersona from '../models/digitalPersona';
+import { createSubscription } from '../services/subscriptionService';
+import { generateToken } from '../utils/jwt';
 
 type Data = {
   message: string;
@@ -88,11 +80,9 @@ export async function loginUser(
       const user = await authenticateUser(email, password);
       // Generate JWT Token
       const token = generateToken(user);
-      const existingPersona = await DigitalPersona.findOne({
-        userId: user._id,
-      });
+      const existingPersona = await DigitalPersona.findOne({ userId: user._id });
       const isPersonaAvailable = existingPersona ? true : false;
-      res.status(200).json({
+      const response: Data = {
         message: "Login successful",
         name: user.name,
         email: user.email,

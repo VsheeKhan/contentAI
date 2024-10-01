@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { generatePost } from '../services/openAIService';
+import { generatePost, generatePostTopics } from '../services/openAIService';
 import { createPost, getAllPostsByUserId, updatePost, deletePost } from '../services/postService';
 import { getDigitalPersonaByUserId } from '../services/digitalPersonaService';
-import connectToDatabase from '../lib/mongodb'; // If you need to use the database
+import connectToDatabase from '../lib/mongodb';
 
 // Handler to generate digital persona
 export async function generatePostHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,9 +14,12 @@ export async function generatePostHandler(req: NextApiRequest, res: NextApiRespo
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
       }
-      const { topic, industry, tone, platform } = req.body;
-      if (!topic || !industry || !tone || !platform) {
-        return res.status(400).json({ message: 'topic, industry, tone, platform are required' });
+      const { topic} = req.body;
+      const industry = req.body.industry || '';
+      const tone = req.body.tone || '';
+      const platform = req.body.platform || '';
+      if (!topic) {
+        return res.status(400).json({ message: 'topic is required' });
       }
       const post = await generatePost(userId, topic, industry, tone, platform);
       res.status(200).json({ post });
@@ -39,10 +42,13 @@ export async function createPostHandler(req: NextApiRequest, res: NextApiRespons
       if (!userId) {
         return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
       }
-      const { topic, industry, tone, platform, generatedPost } = req.body;
+      const { topic, generatedPost } = req.body;
+      const industry = req.body.industry || '';
+      const tone = req.body.tone || '';
+      const platform = req.body.platform || '';
 
-      if (!topic || !industry || !tone || !platform || !generatedPost) {
-        return res.status(400).json({ message: 'generatedPost, topic, industry, tone, and platform are required' });
+      if (!topic || !generatedPost) { 
+        return res.status(400).json({ message: 'generatedPost, topic, are required' });
       }
       const post = await createPost(userId, topic, industry, tone, platform, generatedPost);
       res.status(201).json(post);
@@ -114,6 +120,38 @@ export async function deletePostHandler(req: NextApiRequest, res: NextApiRespons
   } else {
     res.setHeader('Allow', ['DELETE']);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function generatePostTopicsHandler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    try{
+      const response:any = await generatePostTopics();
+      const topics = extractTopicsFromResponse(response);
+      res.status(200).json({ topics });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+    }
+  } else {
+    res.setHeader('Allow', ['DELETE']);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+function extractTopicsFromResponse(response: string): string[] {
+  const jsonStart = response.indexOf('[');
+  const jsonEnd = response.lastIndexOf(']') + 1;
+
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error('Invalid response format');
+  }
+  const jsonArrayString = response.slice(jsonStart, jsonEnd);
+
+  try {
+    const topicsArray = JSON.parse(jsonArrayString);
+    return topicsArray;
+  } catch (error) {
+    throw new Error('Error parsing topics from response');
   }
 }
 

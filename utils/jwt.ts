@@ -10,11 +10,11 @@ export function generateToken(user: any) {
   const isAdmin = user.userType === userType.admin ? true : false;
   const payload = {
     userId,
-    name,
-    email,
-    isAdmin,
-  };
-  return jwt.sign(payload, SECRET_KEY, { expiresIn: "1d" }); // Token expires in 1 hour
+    name, 
+    email, 
+    isAdmin
+  }
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: '1d' }); // Token expires in 1 hour
 }
 
 export function verifyToken(token: string) {

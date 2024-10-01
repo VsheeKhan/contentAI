@@ -1,8 +1,8 @@
-import User from "../models/user";
-import Subscription from "../models/subscription";
-import Plan from "../models/plan";
-import { differenceInDays, subMonths, startOfMonth } from "date-fns";
-import bcrypt from "bcryptjs";
+import User from '../models/user';
+import Subscription from '../models/subscription';
+import Plan from '../models/plan';
+import { differenceInDays, subMonths, startOfMonth } from 'date-fns';
+import bcrypt from 'bcryptjs';
 
 interface UserInput {
   name: string;
