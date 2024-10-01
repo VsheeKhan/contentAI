@@ -5,30 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { authFetch } from "../utils/authFetch";
-import { Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { authFetch } from "../utils/authFetch";
+import { PersonaPreview } from "./persona-preview";
 
-type QuestionType = "text" | "single_choice" | "mcq" | "radio";
+type QuestionType = "text" | "textarea" | "radio" | "single_choice" | "mcq";
 
 interface Question {
   id: number;
-  text: string;
+  question: string;
   type: QuestionType;
   options?: string[];
 }
 
-interface Answers {
-  [key: number]: string;
+interface Answer {
+  [question: string]: string;
 }
 
 export default function PersonaSurvey() {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
-  const [answers, setAnswers] = useState<Answers>({});
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [generatedPersona, setGeneratedPersona] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetchQuestions();
@@ -43,14 +48,14 @@ export default function PersonaSurvey() {
         throw new Error("Failed to fetch questions");
       }
       const data = await response.json();
-      console.log("Fetched questions: ", data);
-      const questionsToAdd: Array<Question> = data.map((question: any) => ({
+      const questionsToAdd: Question[] = data.map((question) => ({
         id: question._id,
-        text: question.question,
+        question: question.question,
         type: question.questionType,
         options: question.options ? Object.values(question.options) : undefined,
       }));
       setQuestions([...questions, ...questionsToAdd]);
+      setAnswers(data.map((q) => ({ [q.question]: "" })));
     } catch (err) {
       setError(
         "An error occurred while fetching questions. Please try again later."
@@ -63,7 +68,7 @@ export default function PersonaSurvey() {
 
   const validateAnswer = (
     questionType: QuestionType,
-    answer: string | string[] | undefined
+    answer: string
   ): boolean => {
     switch (questionType) {
       case "text":
@@ -83,7 +88,7 @@ export default function PersonaSurvey() {
         }
         break;
       case "mcq":
-        if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+        if (!answer || answer.split(",").filter(Boolean).length === 0) {
           setValidationError("Please select at least one option");
           return false;
         }
@@ -97,7 +102,8 @@ export default function PersonaSurvey() {
 
   const handleNext = () => {
     const currentQuestionData = questions[currentQuestion];
-    const currentAnswer = answers[currentQuestion];
+    const currentAnswer =
+      answers[currentQuestion][currentQuestionData.question];
 
     if (!validateAnswer(currentQuestionData.type, currentAnswer)) {
       return;
@@ -115,81 +121,123 @@ export default function PersonaSurvey() {
     }
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion]: event.target.value,
-    });
-    setValidationError(null);
-  };
-
-  const handleCheckboxChange = (option: string, checked: boolean) => {
-    const currentAnswer = answers[currentQuestion] || "";
-    const answerArray = currentAnswer.split(",").filter(Boolean);
-
-    if (checked) {
-      answerArray.push(option);
-    } else {
-      const index = answerArray.indexOf(option);
-      if (index > -1) {
-        answerArray.splice(index, 1);
-      }
-    }
-
-    setAnswers({
-      ...answers,
-      [currentQuestion]: answerArray.join(","),
+  const handleInputChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const question = questions[currentQuestion].question;
+    setAnswers((prevAnswers) => {
+      const newAnswers = [...prevAnswers];
+      newAnswers[currentQuestion] = { [question]: event.target.value };
+      return newAnswers;
     });
     setValidationError(null);
   };
 
   const handleRadioChange = (value: string) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion]: value,
+    const question = questions[currentQuestion].question;
+    setAnswers((prevAnswers) => {
+      const newAnswers = [...prevAnswers];
+      newAnswers[currentQuestion] = { [question]: value };
+      return newAnswers;
     });
     setValidationError(null);
   };
 
-  const handleFinish = () => {
+  const handleCheckboxChange = (option: string, checked: boolean) => {
+    const question = questions[currentQuestion].question;
+    setAnswers((prevAnswers) => {
+      const newAnswers = [...prevAnswers];
+      const currentAnswer = newAnswers[currentQuestion][question];
+      const currentOptions = currentAnswer
+        ? currentAnswer.split(",").filter(Boolean)
+        : [];
+      let newOptions: string[];
+
+      if (checked) {
+        newOptions = [...currentOptions, option];
+      } else {
+        newOptions = currentOptions.filter((item) => item !== option);
+      }
+
+      newAnswers[currentQuestion] = { [question]: newOptions.join(",") };
+      return newAnswers;
+    });
+    setValidationError(null);
+  };
+
+  const handleFinish = async () => {
     const currentQuestionData = questions[currentQuestion];
-    const currentAnswer = answers[currentQuestion];
+    const currentAnswer =
+      answers[currentQuestion][currentQuestionData.question];
 
     if (!validateAnswer(currentQuestionData.type, currentAnswer)) {
       return;
     }
 
-    setValidationError(null);
     console.log("Survey completed:", answers);
-    // Here you would typically send the answers to your server or perform any other action
-    alert("Thank you for completing the survey!");
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/generate-persona", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ queryPrompt: answers }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate persona");
+      }
+
+      const data = await response.json();
+      setGeneratedPersona(data.persona);
+    } catch (error) {
+      console.error("Error generating persona:", error);
+      setError("Failed to generate persona. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleSavePersona = () => {
+    router.push("/home/plans/trial");
+  };
+
+  const handleCancelPersona = () => {
+    // setGeneratedPersona(null);
+    resetSurvey();
+  };
+
+  const resetSurvey = () => {
+    setCurrentQuestion(0);
+    setAnswers(questions.map((q) => ({ [q.question]: "" })));
+    setGeneratedPersona(null);
   };
 
   const renderQuestion = () => {
     const question = questions[currentQuestion];
+    const answer = answers[currentQuestion][question.question];
+
     switch (question.type) {
       case "text":
         return (
           <div className="space-y-2">
             <Label htmlFor={`question-${currentQuestion}`}>
-              {question.text}
+              {question.question}
             </Label>
             <Input
               id={`question-${currentQuestion}`}
-              value={answers[currentQuestion] || ""}
+              value={answer}
               onChange={handleInputChange}
             />
           </div>
         );
-      case "single_choice":
       case "radio":
+      case "single_choice":
         return (
           <div className="space-y-2">
-            <Label>{question.text}</Label>
-            <RadioGroup
-              value={answers[currentQuestion] || ""}
-              onValueChange={handleRadioChange}
-            >
+            <Label>{question.question}</Label>
+            <RadioGroup value={answer} onValueChange={handleRadioChange}>
               {question.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <RadioGroupItem value={option} id={`option-${index}`} />
@@ -202,14 +250,12 @@ export default function PersonaSurvey() {
       case "mcq":
         return (
           <div className="space-y-2">
-            <Label>{question.text}</Label>
+            <Label>{question.question}</Label>
             {question.options?.map((option, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <Checkbox
                   id={`option-${index}`}
-                  checked={(answers[currentQuestion] || "")
-                    .split(",")
-                    .includes(option)}
+                  checked={answer.split(",").includes(option)}
                   onCheckedChange={(checked) =>
                     handleCheckboxChange(option, checked as boolean)
                   }
@@ -238,7 +284,17 @@ export default function PersonaSurvey() {
   }
 
   if (questions.length === 0) {
-    return <div className="text-center">No questions available</div>;
+    return <div className="text-center">No questions available.</div>;
+  }
+
+  if (generatedPersona) {
+    return (
+      <PersonaPreview
+        persona={generatedPersona}
+        onSave={handleSavePersona}
+        onCancel={handleCancelPersona}
+      />
+    );
   }
 
   return (
@@ -255,7 +311,9 @@ export default function PersonaSurvey() {
           Back
         </Button>
         {currentQuestion === questions.length - 1 ? (
-          <Button onClick={handleFinish}>Finish</Button>
+          <Button onClick={handleFinish} disabled={isGenerating}>
+            {isGenerating ? "Generating..." : "Finish"}
+          </Button>
         ) : (
           <Button onClick={handleNext}>Next</Button>
         )}
