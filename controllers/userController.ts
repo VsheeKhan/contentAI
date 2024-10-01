@@ -4,6 +4,10 @@ import {
   findUserByEmail,
   createUser,
   authenticateUser,
+  getUsersByPlan,
+  getPaginatedUsers,
+  getUserRegistrationCountLast6Months,
+  updateUserRoleStatusAndPlan
 } from "../services/userService";
 import Plan from "../models/plan";
 import { userType } from "@/models/user";
