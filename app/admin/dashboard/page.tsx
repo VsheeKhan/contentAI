@@ -6,6 +6,7 @@ import { BarChart, Users, FileQuestion, CreditCard } from "lucide-react";
 // import AnalyticsOverview from "./analytics-overview";
 import QuestionManagement from "../../components/question-management";
 import ProtectedLayout from "@/app/layout/protected-layout";
+import LogoutButton from "@/app/components/logout-button";
 // import UserManagement from "./user-management";
 // import FreeTrialMonitoring from "./free-trial-monitoring";
 // import SubscriptionControl from "./subscription-control";
@@ -16,6 +17,7 @@ export default function AdminDashboard() {
   return (
     <ProtectedLayout>
       <div className="container mx-auto p-6">
+        <LogoutButton />
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         <Tabs
           value={activeTab}

@@ -9,6 +9,7 @@ const geistSans = localFont({
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -30,11 +31,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <main className="h-screen flex justify-center items-center">
-          <AuthProvider>
-            <InitialRouter>{children}</InitialRouter>
-          </AuthProvider>
-        </main>
+        <AuthProvider>
+          <InitialRouter>
+            <main className="h-screen flex justify-center items-center">
+              {children}
+            </main>
+          </InitialRouter>
+        </AuthProvider>
       </body>
     </html>
   );
