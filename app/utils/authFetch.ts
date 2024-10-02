@@ -10,8 +10,7 @@ export async function authFetch(url: string, options: RequestInit = {}) {
   if (response.status === 401) {
     // Token is invalid or expired
     localStorage.removeItem("authToken");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
+    localStorage.removeItem("isPersonaAvailable");
     window.location.href = "/auth";
     throw new Error("Unauthorized");
   }

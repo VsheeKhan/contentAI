@@ -9,14 +9,16 @@ import React, {
 } from "react";
 
 interface AuthUser {
+  userId: string;
   name: string;
   email: string;
   isAdmin: boolean;
+  isPersonaAvailable: boolean;
 }
 
 interface AuthContextType {
   user: AuthUser | null | undefined;
-  login: (token: string, name: string, email: string) => Promise<boolean>;
+  login: (token: string, isPersonaAvailable: boolean) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -37,13 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-
-    if (token) {
+    const isPersonaAvailableString = localStorage.getItem("isPersonaAvailable");
+    if (token && isPersonaAvailableString) {
       const payload = JSON.parse(atob(token.split(".")[1]));
       setUser({
+        userId: payload.userId,
         name: payload.name,
         email: payload.email,
         isAdmin: payload.isAdmin,
+        isPersonaAvailable: JSON.parse(isPersonaAvailableString),
       });
     } else {
       setUser(null);
@@ -51,11 +55,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    (token: string, name: string, email: string): Promise<boolean> => {
+    (token: string, isPersonaAvailable: boolean): Promise<boolean> => {
       return new Promise((resolve) => {
         localStorage.setItem("authToken", token);
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser({ name, email, isAdmin: payload.isAdmin });
+        localStorage.setItem(
+          "isPersonaAvailable",
+          JSON.stringify(isPersonaAvailable)
+        );
+        const { userId, name, email, isAdmin } = JSON.parse(
+          atob(token.split(".")[1])
+        );
+        setUser({ userId, name, email, isAdmin, isPersonaAvailable });
         setLoginResolver(() => resolve);
       });
     },
@@ -64,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("isPersonaAvailable");
     setUser(null);
   };
 
