@@ -196,12 +196,10 @@ export async function getUserRegistrationCountHandler(
       const registrationCounts = await getUserRegistrationCountLast6Months();
       res.status(200).json(registrationCounts);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
@@ -225,12 +223,10 @@ export async function updateUserRoleStatusAndPlanHandler(
         newStatus === undefined ||
         !newPlanName
       ) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "userId, newUserType, newStatus, and newPlanName are required",
-          });
+        return res.status(400).json({
+          message:
+            "userId, newUserType, newStatus, and newPlanName are required",
+        });
       }
       const result = await updateUserRoleStatusAndPlan(
         userId,
@@ -240,12 +236,10 @@ export async function updateUserRoleStatusAndPlanHandler(
       );
       res.status(200).json(result);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["PUT"]);
