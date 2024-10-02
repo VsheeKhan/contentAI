@@ -20,17 +20,18 @@ interface Question {
   options?: string[];
 }
 
-interface Answer {
-  [question: string]: string;
+interface SurveyResult {
+  question: string;
+  answer: string;
 }
 
 export default function PersonaSurvey() {
-  const [currentQuestion, setCurrentQuestion] = useState<number>(0);
-  const [answers, setAnswers] = useState<Answer[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionNumber, setCurrentQuestionNumber] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [surveyResults, setSurveyResults] = useState<SurveyResult[]>([]);
   const [generatedPersona, setGeneratedPersona] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function PersonaSurvey() {
         options: question.options ? Object.values(question.options) : undefined,
       }));
       setQuestions([...questions, ...questionsToAdd]);
-      setAnswers(data.map((q) => ({ [q.question]: "" })));
+      setSurveyResults(data.map(({ question }) => ({ question, answer: "" })));
     } catch (err) {
       setError(
         "An error occurred while fetching questions. Please try again later."
@@ -101,80 +102,79 @@ export default function PersonaSurvey() {
   };
 
   const handleNext = () => {
-    const currentQuestionData = questions[currentQuestion];
-    const currentAnswer =
-      answers[currentQuestion][currentQuestionData.question];
+    const currentQuestionData = questions[currentQuestionNumber];
+    const currentAnswer = surveyResults[currentQuestionNumber].answer;
 
     if (!validateAnswer(currentQuestionData.type, currentAnswer)) {
       return;
     }
 
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+    if (currentQuestionNumber < questions.length - 1) {
+      setCurrentQuestionNumber(currentQuestionNumber + 1);
     }
   };
 
   const handleBack = () => {
     setValidationError(null);
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+    if (currentQuestionNumber > 0) {
+      setCurrentQuestionNumber(currentQuestionNumber - 1);
     }
   };
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const question = questions[currentQuestion].question;
-    setAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      newAnswers[currentQuestion] = { [question]: event.target.value };
-      return newAnswers;
+    const question = questions[currentQuestionNumber].question;
+    setSurveyResults((prevResults) => {
+      const newResults = [...prevResults];
+      newResults[currentQuestionNumber] = {
+        question,
+        answer: event.target.value,
+      };
+      return newResults;
     });
     setValidationError(null);
   };
 
   const handleRadioChange = (value: string) => {
-    const question = questions[currentQuestion].question;
-    setAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      newAnswers[currentQuestion] = { [question]: value };
-      return newAnswers;
+    const question = questions[currentQuestionNumber].question;
+    setSurveyResults((prevResults) => {
+      const newResults = [...prevResults];
+      newResults[currentQuestionNumber] = { question, answer: value };
+      return newResults;
     });
     setValidationError(null);
   };
 
   const handleCheckboxChange = (option: string, checked: boolean) => {
-    const question = questions[currentQuestion].question;
-    setAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      const currentAnswer = newAnswers[currentQuestion][question];
+    const question = questions[currentQuestionNumber].question;
+    setSurveyResults((prevResults) => {
+      const newResults = [...prevResults];
+      const currentAnswer = newResults[currentQuestionNumber].answer;
       const currentOptions = currentAnswer
         ? currentAnswer.split(",").filter(Boolean)
         : [];
-      let newOptions: string[];
-
-      if (checked) {
-        newOptions = [...currentOptions, option];
-      } else {
-        newOptions = currentOptions.filter((item) => item !== option);
-      }
-
-      newAnswers[currentQuestion] = { [question]: newOptions.join(",") };
-      return newAnswers;
+      const newOptions = checked
+        ? [...currentOptions, option]
+        : currentOptions.filter((item) => item !== option);
+      newResults[currentQuestionNumber] = {
+        question,
+        answer: newOptions.join(","),
+      };
+      return newResults;
     });
     setValidationError(null);
   };
 
   const handleFinish = async () => {
-    const currentQuestionData = questions[currentQuestion];
-    const currentAnswer =
-      answers[currentQuestion][currentQuestionData.question];
+    const currentQuestionData = questions[currentQuestionNumber];
+    const currentAnswer = surveyResults[currentQuestionNumber].answer;
 
     if (!validateAnswer(currentQuestionData.type, currentAnswer)) {
       return;
     }
 
-    console.log("Survey completed:", answers);
+    console.log("Survey completed:", surveyResults);
     setError(null);
     setIsGenerating(true);
     try {
@@ -183,7 +183,7 @@ export default function PersonaSurvey() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ queryPrompt: answers }),
+        body: JSON.stringify({ queryPrompt: surveyResults }),
       });
 
       if (!response.ok) {
@@ -210,24 +210,24 @@ export default function PersonaSurvey() {
   };
 
   const resetSurvey = () => {
-    setCurrentQuestion(0);
-    setAnswers(questions.map((q) => ({ [q.question]: "" })));
+    setCurrentQuestionNumber(0);
+    setSurveyResults([]);
     setGeneratedPersona(null);
   };
 
   const renderQuestion = () => {
-    const question = questions[currentQuestion];
-    const answer = answers[currentQuestion][question.question];
+    const currentQuestion = questions[currentQuestionNumber];
+    const answer = surveyResults[currentQuestionNumber].answer;
 
-    switch (question.type) {
+    switch (currentQuestion.type) {
       case "text":
         return (
           <div className="space-y-2">
-            <Label htmlFor={`question-${currentQuestion}`}>
-              {question.question}
+            <Label htmlFor={`question-${currentQuestionNumber}`}>
+              {currentQuestion.question}
             </Label>
             <Input
-              id={`question-${currentQuestion}`}
+              id={`question-${currentQuestionNumber}`}
               value={answer}
               onChange={handleInputChange}
             />
@@ -237,9 +237,9 @@ export default function PersonaSurvey() {
       case "single_choice":
         return (
           <div className="space-y-2">
-            <Label>{question.question}</Label>
+            <Label>{currentQuestion.question}</Label>
             <RadioGroup value={answer} onValueChange={handleRadioChange}>
-              {question.options?.map((option, index) => (
+              {currentQuestion.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <RadioGroupItem value={option} id={`option-${index}`} />
                   <Label htmlFor={`option-${index}`}>{option}</Label>
@@ -251,8 +251,8 @@ export default function PersonaSurvey() {
       case "mcq":
         return (
           <div className="space-y-2">
-            <Label>{question.question}</Label>
-            {question.options?.map((option, index) => (
+            <Label>{currentQuestion.question}</Label>
+            {currentQuestion.options?.map((option, index) => (
               <div key={index} className="flex items-center space-x-2">
                 <Checkbox
                   id={`option-${index}`}
@@ -304,10 +304,13 @@ export default function PersonaSurvey() {
         )}
       </div>
       <div className="flex justify-between">
-        <Button onClick={handleBack} disabled={currentQuestion === 0}>
+        <Button
+          onClick={handleBack}
+          disabled={currentQuestionNumber === 0 || isGenerating}
+        >
           Back
         </Button>
-        {currentQuestion === questions.length - 1 ? (
+        {currentQuestionNumber === questions.length - 1 ? (
           <Button onClick={handleFinish} disabled={isGenerating}>
             {isGenerating ? "Generating..." : "Finish"}
           </Button>
@@ -316,7 +319,7 @@ export default function PersonaSurvey() {
         )}
       </div>
       <div className="text-sm text-gray-500">
-        Question {currentQuestion + 1} of {questions.length}
+        Question {currentQuestionNumber + 1} of {questions.length}
       </div>
       {error && <div className="text-red-500">{error}</div>}
     </div>

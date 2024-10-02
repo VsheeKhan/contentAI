@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { authFetch } from "../utils/authFetch";
 
 interface PersonaPreviewProps {
   persona: string;
@@ -22,7 +23,7 @@ export function PersonaPreview({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch("/api/digital-persona", {
+      const response = await authFetch("/api/digital-persona", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -49,7 +50,7 @@ export function PersonaPreview({
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
+    <div className="max-w-full mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold">Generated Persona</h1>
       {error && (
         <Alert variant="destructive">

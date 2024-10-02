@@ -1,10 +1,18 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import connectToDatabase from '../lib/mongodb';
-import { findUserByEmail, createUser, authenticateUser, getPaginatedUsers, getUsersByPlan, getUserRegistrationCountLast6Months, updateUserRoleStatusAndPlan } from '../services/userService';
-import Plan from '../models/plan';
-import DigitalPersona from '../models/digitalPersona';
-import { createSubscription } from '../services/subscriptionService';
-import { generateToken } from '../utils/jwt';
+import type { NextApiRequest, NextApiResponse } from "next";
+import connectToDatabase from "../lib/mongodb";
+import {
+  findUserByEmail,
+  createUser,
+  authenticateUser,
+  getPaginatedUsers,
+  getUsersByPlan,
+  getUserRegistrationCountLast6Months,
+  updateUserRoleStatusAndPlan,
+} from "../services/userService";
+import Plan from "../models/plan";
+import DigitalPersona from "../models/digitalPersona";
+import { createSubscription } from "../services/subscriptionService";
+import { generateToken } from "../utils/jwt";
 
 type Data = {
   message: string;
@@ -80,7 +88,9 @@ export async function loginUser(
       const user = await authenticateUser(email, password);
       // Generate JWT Token
       const token = generateToken(user);
-      const existingPersona = await DigitalPersona.findOne({ userId: user._id });
+      const existingPersona = await DigitalPersona.findOne({
+        userId: user._id,
+      });
       const isPersonaAvailable = existingPersona ? true : false;
       const response: Data = {
         message: "Login successful",
@@ -88,7 +98,7 @@ export async function loginUser(
         email: user.email,
         isPersonaAvailable,
         token,
-      });
+      };
 
       res.status(200).json(response);
     } catch (error: any) {
@@ -142,12 +152,10 @@ export async function getUsersHandler(
 
       res.status(200).json(result);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
@@ -172,12 +180,10 @@ export async function getUsersByPlanHandler(
       const result = await getUsersByPlan(plan, page, limit);
       res.status(200).json(result);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
@@ -196,12 +202,10 @@ export async function getUserRegistrationCountHandler(
       const registrationCounts = await getUserRegistrationCountLast6Months();
       res.status(200).json(registrationCounts);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
@@ -225,12 +229,10 @@ export async function updateUserRoleStatusAndPlanHandler(
         newStatus === undefined ||
         !newPlanName
       ) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "userId, newUserType, newStatus, and newPlanName are required",
-          });
+        return res.status(400).json({
+          message:
+            "userId, newUserType, newStatus, and newPlanName are required",
+        });
       }
       const result = await updateUserRoleStatusAndPlan(
         userId,
@@ -240,12 +242,10 @@ export async function updateUserRoleStatusAndPlanHandler(
       );
       res.status(200).json(result);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["PUT"]);
