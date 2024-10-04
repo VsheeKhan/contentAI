@@ -26,15 +26,12 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
     },
     industry: {
       type: String,
-      required: true,
     },
     tone: {
       type: String,
-      required: true,
     },
     platform: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }

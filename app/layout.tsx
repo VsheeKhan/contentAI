@@ -30,7 +30,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <main className="h-screen flex justify-center items-center">
+<<<<<<< HEAD
+          {children}
+=======
           <AuthProvider>{children}</AuthProvider>
+>>>>>>> main
         </main>
       </body>
     </html>

@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+<<<<<<< HEAD
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+=======
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+>>>>>>> main
 import {
   Card,
   CardContent,
@@ -11,7 +15,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+<<<<<<< HEAD
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+// import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, EyeIcon, EyeOffIcon } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+=======
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+>>>>>>> main
 import {
   Form,
   FormControl,
@@ -20,12 +35,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+<<<<<<< HEAD
+=======
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EyeIcon, EyeOffIcon, AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/app/contexts/auth-context";
+>>>>>>> main
 import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
@@ -36,7 +54,11 @@ const loginSchema = z.object({
 });
 
 const registerSchema = loginSchema.extend({
+<<<<<<< HEAD
+  name: z
+=======
   fullName: z
+>>>>>>> main
     .string()
     .min(2, { message: "Full name must be at least 2 characters" }),
 });
@@ -46,10 +68,16 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthComponent() {
   const [showPassword, setShowPassword] = useState(false);
+<<<<<<< HEAD
+  const router = useRouter();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+=======
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const { login } = useAuth();
   const router = useRouter();
+>>>>>>> main
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -62,7 +90,11 @@ export default function AuthComponent() {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+<<<<<<< HEAD
+      name: "",
+=======
       fullName: "",
+>>>>>>> main
       email: "",
       password: "",
     },
@@ -77,6 +109,13 @@ export default function AuthComponent() {
         body: JSON.stringify(values),
       });
       if (response.ok) {
+<<<<<<< HEAD
+        console.log("Login successful");
+        router.push("/");
+      } else {
+        console.error("Login failed");
+        const errorData = await response.json();
+=======
         const data = await response.json();
         const isAdmin: boolean = await login(data.token, data.name, data.email);
         console.log("Login successful");
@@ -85,6 +124,7 @@ export default function AuthComponent() {
       } else {
         const errorData = await response.json();
         console.error("Login failed: ", errorData);
+>>>>>>> main
         setLoginError(errorData.message || "Login failed. Please try again.");
       }
     } catch (error) {
@@ -107,6 +147,12 @@ export default function AuthComponent() {
       });
       if (response.ok) {
         console.log("Registration successful");
+<<<<<<< HEAD
+        router.push("/");
+      } else {
+        console.error("Registration failed");
+        const errorData = await response.json();
+=======
         loginForm.setValue("email", values.email);
         loginForm.setValue("password", values.password);
         // Automatically log in after successful registration
@@ -114,6 +160,7 @@ export default function AuthComponent() {
       } else {
         const errorData = await response.json();
         console.error("Registration failed: ", errorData);
+>>>>>>> main
         setRegisterError(
           errorData.message || "Registration failed. Please try again."
         );
@@ -221,7 +268,11 @@ export default function AuthComponent() {
                 )}
                 <FormField
                   control={registerForm.control}
+<<<<<<< HEAD
+                  name="name"
+=======
                   name="fullName"
+>>>>>>> main
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
