@@ -205,7 +205,6 @@ export default function PersonaSurvey() {
   };
 
   const handleCancelPersona = () => {
-    // setGeneratedPersona(null);
     resetSurvey();
   };
 
