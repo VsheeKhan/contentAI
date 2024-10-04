@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "./contexts/auth-context";
+import InitialRouter from "./components/initial-router";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -29,13 +31,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <main className="h-screen flex justify-center items-center">
-<<<<<<< HEAD
-          {children}
-=======
-          <AuthProvider>{children}</AuthProvider>
->>>>>>> main
-        </main>
+        <AuthProvider>
+          <InitialRouter>
+            <main className="h-screen flex justify-center items-center">
+              {children}
+            </main>
+          </InitialRouter>
+        </AuthProvider>
       </body>
     </html>
   );

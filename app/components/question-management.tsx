@@ -37,30 +37,7 @@ interface Question {
 }
 
 export default function QuestionManagement() {
-  const [questions, setQuestions] = useState<Question[]>([
-    // {
-    //   id: 1,
-    //   text: "What's your favorite feature of our product?",
-    //   type: "Input text",
-    // },
-    // {
-    //   id: 2,
-    //   text: "How has our service improved your workflow?",
-    //   type: "Input text",
-    // },
-    // {
-    //   id: 3,
-    //   text: "Would you recommend our product to a friend?",
-    //   type: "Yes/No",
-    // },
-    // {
-    //   id: 4,
-    //   text: "Which of the following best describes your role?",
-    //   type: "Single Choice",
-    //   options: ["Developer", "Designer", "Manager", "Other"],
-    // },
-    // { id: 5, text: "What's one feature you wish we had?", type: "Input text" },
-  ]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState("");

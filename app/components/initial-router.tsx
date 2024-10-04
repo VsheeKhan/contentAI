@@ -1,25 +1,31 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/app/contexts/auth-context";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/auth-context";
+import { Loader2 } from "lucide-react";
 
-export default function ProtectedLayout({
+export default function InitialRouter({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
   const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user === null) {
       router.push("/auth");
+    } else if (user) {
+      if (user.isAdmin) {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/home");
+      }
     }
   }, [user, router]);
 
-  if (user === undefined || user === null) {
+  if (user === undefined) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="mr-2 h-16 w-16 animate-spin" />
