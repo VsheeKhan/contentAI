@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { generatePost, generatePostTopics } from '../services/openAIService';
 import { createPost, getAllPostsByUserId, updatePost, deletePost } from '../services/postService';
-import { getDigitalPersonaByUserId } from '../services/digitalPersonaService';
+import { storeCustomTopics, getCustomTopics } from '../services/topicService';
 import connectToDatabase from '../lib/mongodb';
+
 
 // Handler to generate digital persona
 export async function generatePostHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -125,15 +126,46 @@ export async function deletePostHandler(req: NextApiRequest, res: NextApiRespons
 
 export async function generatePostTopicsHandler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    try{
-      const response:any = await generatePostTopics();
+    try {
+      await connectToDatabase();
+
+      const { userId } = req.user as { userId: string };
+  
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
+      }
+      const response: any = await generatePostTopics(userId);
+      
       const topics = extractTopicsFromResponse(response);
+      await storeCustomTopics(userId, topics);
       res.status(200).json({ topics });
     } catch (error) {
       res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
     }
   } else {
-    res.setHeader('Allow', ['DELETE']);
+    res.setHeader('Allow', ['GET']);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function getPostTopicsHandler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    try {
+      await connectToDatabase();
+
+      const { userId } = req.user as { userId: string };
+  
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
+      }
+      const topics: any = await getCustomTopics(userId);
+      
+      res.status(200).json({ topics });
+    } catch (error) {
+      res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+    }
+  } else {
+    res.setHeader('Allow', ['GET']);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }

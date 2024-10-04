@@ -252,3 +252,20 @@ export async function updateUserRoleStatusAndPlan(
     newPlan: newPlan.name,
   };
 }
+
+export async function updateUserProfile(userId: string, updates: any) {
+  const { name, email, password, profileImage } = updates;
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (password) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+  }
+  if (profileImage) user.profileImage = profileImage;
+  await user.save();
+  return {user};
+}
