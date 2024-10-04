@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -20,11 +20,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { PenLine, FileText, LogOut, Loader2 } from "lucide-react";
+import {
+  PenLine,
+  FileText,
+  LogOut,
+  Loader2,
+  Settings,
+  Camera,
+  Edit,
+} from "lucide-react";
 import { useAuth } from "../contexts/auth-context";
 import { authFetch } from "../utils/authFetch";
 
-type TabTypes = "generate" | "posts";
+type TabTypes = "generate" | "posts" | "settings";
 
 type Post = {
   id: string;
@@ -34,6 +42,12 @@ type Post = {
   industry: string;
   tone: string;
   platform: string;
+};
+
+type ProfileSettings = {
+  firstName: string;
+  lastName: string;
+  email: string;
 };
 
 export default function Playground() {
@@ -51,11 +65,28 @@ export default function Playground() {
   const [editedPost, setEditedPost] = useState("");
   const [isGeneratingTopics, setIsGeneratingTopics] = useState(false);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileSettings, setProfileSettings] = useState<ProfileSettings>({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
+  const [persona, setPersona] = useState("");
+  const [personaString, setPersonaString] = useState("");
+  const [isEditingPersona, setIsEditingPersona] = useState(false);
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPosts();
+    fetchPersona();
+    if (user) {
+      setProfileSettings({
+        firstName: user.name.split(" ")[0],
+        lastName: user.name.split(" ")[1] || "",
+        email: user.email,
+      });
+    }
   }, []);
 
   const fetchPosts = async () => {
@@ -85,6 +116,25 @@ export default function Playground() {
       console.error("Error fetching posts", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPersona = async () => {
+    try {
+      const response = await authFetch("/api/digital-persona");
+      if (!response.ok) {
+        throw new Error("Error fetching persona details");
+      }
+      const personaDetails = await response.json();
+      setPersona(personaDetails.personaData);
+      setPersonaString(personaDetails.personaData);
+    } catch (err) {
+      console.error("Error fetching persona details", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch persona details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -264,6 +314,68 @@ export default function Playground() {
     }
   };
 
+  const handleEditProfile = () => {
+    setIsEditingProfile(true);
+  };
+
+  const handleCancelEditProfile = () => {
+    setIsEditingProfile(false);
+    setProfileSettings({
+      firstName: user?.name.split(" ")[0] || "",
+      lastName: user?.name.split(" ")[1] || "",
+      email: user?.email || "",
+    });
+  };
+
+  const handleSaveProfile = () => {
+    setIsEditingProfile(false);
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been successfully updated.",
+    });
+  };
+
+  const handleProfileSettingsChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setProfileSettings((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditPersona = () => {
+    setIsEditingPersona(true);
+  };
+
+  const handleCancelEditPersona = () => {
+    setIsEditingPersona(false);
+  };
+
+  const handleSavePersona = async () => {
+    try {
+      const response = await authFetch("/api/digital-persona", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ personaData: personaString }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save persona");
+      }
+      const updatedPersona = await response.json();
+      setPersona(updatedPersona.personaData);
+      setPersonaString(updatedPersona.personaData);
+    } catch (err) {
+      console.error("Error updating persona", err);
+      toast({
+        title: "Error",
+        description: "Failed to update persona. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -308,6 +420,13 @@ export default function Playground() {
             onClick={() => setActiveTab("posts")}
           >
             <FileText className="mr-2 h-4 w-4" /> Posts
+          </Button>
+          <Button
+            variant={activeTab === "settings" ? "default" : "ghost"}
+            className="w-full justify-start mb-2"
+            onClick={() => setActiveTab("settings")}
+          >
+            <Settings className="mr-2 h-4 w-4" /> Settings
           </Button>
         </nav>
         <div className="absolute bottom-0 w-64 p-4 border-t">
@@ -567,6 +686,213 @@ export default function Playground() {
                   </Card>
                 ))
               )}
+            </div>
+          )}
+
+          {activeTab === "settings" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex justify-between items-center">
+                    Profile Settings
+                    {!isEditingProfile && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleEditProfile}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div
+                      className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
+                      // onClick={triggerFileInput}
+                    >
+                      {/* {profileImage ? (
+                        <img
+                          src={profileImage}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : ( */}
+                      <Camera className="h-8 w-8 text-gray-400" />
+                      {/* )} */}
+                    </div>
+                    <input
+                      type="file"
+                      // ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      // onChange={handleProfileImageUpload}
+                    />
+                    <Button
+                    // onClick={triggerFileInput}
+                    >
+                      Upload Image
+                    </Button>
+                  </div>
+                  <form className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        First Name
+                      </label>
+                      {isEditingProfile ? (
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          value={profileSettings.firstName}
+                          onChange={handleProfileSettingsChange}
+                        />
+                      ) : (
+                        <p className="text-gray-900">
+                          {profileSettings.firstName}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="lastName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Last Name
+                      </label>
+                      {isEditingProfile ? (
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          value={profileSettings.lastName}
+                          onChange={handleProfileSettingsChange}
+                        />
+                      ) : (
+                        <p className="text-gray-900">
+                          {profileSettings.lastName}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Email
+                      </label>
+                      {isEditingProfile ? (
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={profileSettings.email}
+                          onChange={handleProfileSettingsChange}
+                        />
+                      ) : (
+                        <p className="text-gray-900">{profileSettings.email}</p>
+                      )}
+                    </div>
+                    {/* <div>
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        New Password
+                      </label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        // value={profileSettings.password}
+                        // onChange={handleProfileSettingsChange}
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Confirm Password
+                      </label>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        // value={profileSettings.confirmPassword}
+                        // onChange={handleProfileSettingsChange}
+                        placeholder="Confirm new password"
+                      />
+                    </div> */}
+                    {isEditingProfile && (
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={handleSaveProfile}
+                          className="bg-pink-500 hover:bg-pink-600"
+                        >
+                          Save Changes
+                        </Button>
+                        <Button
+                          onClick={handleCancelEditProfile}
+                          variant="outline"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                  </form>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Persona Settings
+                    {!isEditingPersona && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleEditPersona}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isEditingPersona ? (
+                    <Textarea
+                      value={personaString}
+                      onChange={(e) => setPersonaString(e.target.value)}
+                      className="min-h-[150px]"
+                      placeholder="Describe your professional persona..."
+                    />
+                  ) : (
+                    <p className="text-gray-900">{persona}</p>
+                  )}
+                  {isEditingPersona && (
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={() => handleSavePersona()}
+                        className="bg-pink-500 hover:bg-pink-600"
+                      >
+                        Save Persona
+                      </Button>
+                      <Button
+                        onClick={handleCancelEditPersona}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
 
