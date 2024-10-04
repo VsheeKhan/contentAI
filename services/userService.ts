@@ -1,8 +1,8 @@
-import User from '../models/user';
-import Subscription from '../models/subscription';
-import Plan from '../models/plan';
-import { differenceInDays, subMonths, startOfMonth } from 'date-fns';
-import bcrypt from 'bcryptjs';
+import User from "../models/user";
+import Subscription from "../models/subscription";
+import Plan from "../models/plan";
+import { differenceInDays, subMonths, startOfMonth } from "date-fns";
+import bcrypt from "bcryptjs";
 
 interface UserInput {
   name: string;
@@ -77,6 +77,7 @@ export async function getPaginatedUsers(page: number, limit: number) {
         status: user.isActive ? "active" : "inactive", // Assuming user has a field 'isActive'
         subscription: subscription
           ? {
+              id: subscription._id,
               plan: subscription.planId.name, // Assuming 'name' field in Plan
               startDateTime: subscription.startDateTime,
               endDateTime: subscription.endDateTime,
@@ -143,7 +144,9 @@ export async function getUsersByPlan(
       ...user, // Spread user info
       userType: userTypeString, // Convert userType to string
       subscription: {
+        id: subscription._id,
         plan: plan.name,
+        status: subscription.status,
         startDateTime: subscription.startDateTime,
         endDateTime: subscription.endDateTime,
         daysLeft: daysLeft >= 0 ? daysLeft : 0, // Return 0 if the days left is negative
