@@ -12,6 +12,7 @@ import {
 import Plan from "../models/plan";
 import { createSubscription } from "../services/subscriptionService";
 import { generateToken } from "../utils/jwt";
+import DigitalPersona from '../models/digitalPersona';
 
 type Data = {
   message: string;
@@ -20,6 +21,7 @@ type Data = {
   isAdmin?: boolean;
   token?: string;
   error?: string;
+  isPersonaAvailable ?: boolean;
 };
 
 export default async function registerUser(
@@ -86,11 +88,13 @@ export async function loginUser(
       const user = await authenticateUser(email, password);
       // Generate JWT Token
       const token = generateToken(user);
-
+      const existingPersona = await DigitalPersona.findOne({ userId: user._id });
+      const isPersonaAvailable = existingPersona ? true : false;
       const response: Data = {
         message: "Login successful",
         name: user.name,
         email: user.email,
+        isPersonaAvailable,
         token,
       };
 
