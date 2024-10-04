@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,9 +28,11 @@ import {
   Settings,
   Camera,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../contexts/auth-context";
 import { authFetch } from "../utils/authFetch";
+import { getRelativeTime } from "../utils/dateUtils";
 
 type TabTypes = "generate" | "posts" | "settings";
 
@@ -42,6 +44,7 @@ type Post = {
   industry: string;
   tone: string;
   platform: string;
+  createdAt: string;
 };
 
 type ProfileSettings = {
@@ -74,6 +77,9 @@ export default function Playground() {
   const [persona, setPersona] = useState("");
   const [personaString, setPersonaString] = useState("");
   const [isEditingPersona, setIsEditingPersona] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
@@ -98,7 +104,16 @@ export default function Playground() {
       const data = await response.json();
       setPosts(
         data.map(
-          ({ _id, userId, content, topic, industry, tone, platform }) => ({
+          ({
+            _id,
+            userId,
+            content,
+            topic,
+            industry,
+            tone,
+            platform,
+            createdAt,
+          }) => ({
             id: _id,
             userId,
             content,
@@ -106,6 +121,7 @@ export default function Playground() {
             industry,
             tone,
             platform,
+            createdAt,
           })
         )
       );
@@ -376,6 +392,28 @@ export default function Playground() {
     }
   };
 
+  const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -399,7 +437,15 @@ export default function Playground() {
       <div className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold flex items-center">
-            <span className="w-8 h-8 bg-pink-500 rounded-md mr-2"></span>
+            <span className="w-8 h-8 bg-pink-500 rounded-md mr-2 flex items-center justify-center overflow-hidden">
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : null}
+            </span>
             {user?.name}
           </h2>
         </div>
@@ -652,9 +698,9 @@ export default function Playground() {
                           <div className="w-12 h-12 bg-pink-500 rounded-full mr-4"></div>
                           <div>
                             <h3 className="font-bold">{user?.name}</h3>
-                            {/* <p className="text-sm text-gray-500">
-                            Executive (CEO, CFO, CTO, etc.) • 2h
-                          </p> */}
+                            <p className="text-sm text-gray-500">
+                              • {getRelativeTime(post.createdAt)}
+                            </p>
                           </div>
                         </div>
                         <p className="mb-2">{post.topic}</p>
@@ -711,30 +757,39 @@ export default function Playground() {
                   <div className="flex items-center space-x-4 mb-6">
                     <div
                       className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
-                      // onClick={triggerFileInput}
+                      onClick={triggerFileInput}
                     >
-                      {/* {profileImage ? (
+                      {profileImage ? (
                         <img
                           src={profileImage}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
-                      ) : ( */}
-                      <Camera className="h-8 w-8 text-gray-400" />
-                      {/* )} */}
+                      ) : (
+                        <Camera className="h-8 w-8 text-gray-400" />
+                      )}
                     </div>
                     <input
                       type="file"
-                      // ref={fileInputRef}
+                      ref={fileInputRef}
                       className="hidden"
                       accept="image/*"
-                      // onChange={handleProfileImageUpload}
+                      onChange={handleProfileImageUpload}
                     />
-                    <Button
-                    // onClick={triggerFileInput}
-                    >
-                      Upload Image
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button onClick={triggerFileInput}>
+                        {profileImage ? "Change Image" : "Upload Image"}
+                      </Button>
+                      {profileImage && (
+                        <Button
+                          variant="destructive"
+                          onClick={removeProfileImage}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove Image
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <form className="space-y-4">
                     <div>
