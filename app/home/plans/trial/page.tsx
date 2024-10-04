@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function FreeTrial() {
+  const router = useRouter();
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -62,7 +66,14 @@ export default function FreeTrial() {
         </Card>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
-        <Button className="w-full text-lg py-6">Start Your Free Trial</Button>
+        <Button
+          className="w-full text-lg py-6"
+          onClick={() => {
+            router.push("/home");
+          }}
+        >
+          Start Your Free Trial
+        </Button>
         <Link
           href="/home/plans/pricing"
           className="text-center text-muted-foreground hover:underline"
