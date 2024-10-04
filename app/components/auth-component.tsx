@@ -139,7 +139,11 @@ export default function AuthComponent() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          name: values.fullName,
+          email: values.email,
+          password: values.password,
+        }),
       });
       if (response.ok) {
         console.log("Registration successful");

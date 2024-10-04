@@ -82,7 +82,6 @@ export default function QuestionManagement() {
         throw new Error("Failed to fetch questions");
       }
       const data = await response.json();
-      console.log("Fetched questions: ", data);
       const questionsToAdd = data.map((question) => {
         const questionToAdd: Question = {
           id: question._id,
@@ -269,7 +268,6 @@ export default function QuestionManagement() {
       }
 
       const updatedQuestion = await response.json();
-      console.log("Updated Question: ", updatedQuestion);
       setQuestions(
         questions.map((q) =>
           q.id === editingQuestion.id
