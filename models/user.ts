@@ -5,7 +5,8 @@ interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  userType ?: number;
+  userType?: number;
+  profileImage?: string;
 }
 
 export enum userType {
@@ -33,6 +34,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       required: true,
       enum: userType,
       default: userType.user
+    },
+    profileImage: {
+      type: String,
+      required: false,
+      default: ""
     }
   },
   {

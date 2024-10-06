@@ -22,6 +22,7 @@ type Data = {
   token?: string;
   error?: string;
   isPersonaAvailable?: boolean;
+  profileImage?: string;
 };
 
 export default async function registerUser(
@@ -96,6 +97,7 @@ export async function loginUser(
         message: "Login successful",
         name: user.name,
         email: user.email,
+        profileImage: `uploads/${user.profileImage}` || "", 
         isPersonaAvailable,
         token,
       };
