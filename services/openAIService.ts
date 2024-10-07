@@ -81,20 +81,39 @@ export async function generatePost(userId:string, topic: string, industry: strin
 	}
   }
 
-export async function generatePostTopics() {
+export async function generatePostTopics(userId: string) {
+	const persona:any = await DigitalPersona.findOne({ userId });
 	const response = await openai.chat.completions.create({
 		model: 'gpt-4o-mini',
 		messages: [
 		  {
 			role: 'system',
-			content: "You are a highly skilled social media strategist with expertise in identifying trending and engaging topics for social media platforms. Your task is to generate a list of highly engaging social media topics that are relevant, attention-grabbing, and designed to encourage high user interaction. These topics should cover a variety of trends, industries, or themes that appeal to a broad audience"
+			content: `
+                You are an expert content strategist who deeply understands the digital persona provided by the user. 
+                The digital persona represents their personal brand, values, tone, industry expertise, and goals. 
+                Your job is to generate the most relevant and trending topics that align with this persona's voice and objectives, 
+                ensuring each topic is current and likely to engage the target audience.
+
+                The digital persona:
+                ${persona.personaData}
+
+                Focus on generating topics that:
+                - Are currently trending or highly relevant within the user's industry
+                - Reflect the user's voice and tone
+                - Align with the user's goals and the expectations of their audience
+                `
 		  },
 		  {
 			role: 'user',
-			content: "Generate 10 highly engaging topics for social media posts that will capture attention and promote interaction. The topics should be creative, relevant to current trends, and versatile across different platforms. Return the topics in an array of strings format",
+			content: `
+                Using my digital persona described in the system prompt, generate ${process.env.GENERATE_NO_TOPICS} trending content topics that are relevant to my industry, audience, and current trends. 
+                Ensure the topics are engaging, forward-thinking, and likely to resonate with my audience's current interests and needs.
+				Return the topics in an array of strings format.
+                `,
 		  },
 		],
 		max_tokens: 4096,
+		temperature: 0.7
 	});
 	return response.choices[0].message?.content;
 }
