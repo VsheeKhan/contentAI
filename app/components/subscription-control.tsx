@@ -104,12 +104,12 @@ export default function SubscriptionControl() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Current Plan</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Next Billing Date</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="w-[20%]">Name</TableHead>
+            <TableHead className="w-[20%]">Email</TableHead>
+            <TableHead className="w-[10%]">Current Plan</TableHead>
+            <TableHead className="w-[10%]">Status</TableHead>
+            <TableHead className="w-[10%]">Next Billing Date</TableHead>
+            <TableHead className="w-[30%]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -121,25 +121,27 @@ export default function SubscriptionControl() {
               <TableCell>{sub.status}</TableCell>
               <TableCell>{sub.nextBillingDate.toDateString()}</TableCell>
               <TableCell>
-                <Select
-                  onValueChange={(value) => changePlan(sub.id, value)}
-                  defaultValue={sub.plan}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Change plan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="trial">Trial</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  className="ml-2"
-                  variant="outline"
-                  onClick={() => openStripeManagement(sub.id)}
-                >
-                  Manage in Stripe
-                </Button>
+                <div className="flex space-x-2">
+                  <Select
+                    onValueChange={(value) => changePlan(sub.id, value)}
+                    defaultValue={sub.plan}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Change plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="trial">Trial</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    className="ml-2"
+                    variant="outline"
+                    onClick={() => openStripeManagement(sub.id)}
+                  >
+                    Manage in Stripe
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
