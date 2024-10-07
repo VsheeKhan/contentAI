@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil, Save, Trash2, X } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
 
 type QuestionType =
@@ -335,10 +335,10 @@ export default function QuestionManagement() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Question</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Options</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="w-[44%]">Question</TableHead>
+            <TableHead className="w-[15%]">Type</TableHead>
+            <TableHead className="w-[40%]">Options</TableHead>
+            <TableHead className="w-[1%]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -416,31 +416,43 @@ export default function QuestionManagement() {
                 )}
               </TableCell>
               <TableCell>
-                {editingQuestion?.id === question.id ? (
-                  <>
-                    <Button onClick={updateQuestion} className="mr-2">
-                      Save
-                    </Button>
-                    <Button onClick={cancelEditing} variant="outline">
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => startEditing(question)}
-                      className="mr-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => removeQuestion(question.id)}
-                    >
-                      Remove
-                    </Button>
-                  </>
-                )}
+                <div className="flex justify-end space-x-2">
+                  {editingQuestion?.id === question.id ? (
+                    <>
+                      <Button
+                        onClick={updateQuestion}
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={cancelEditing}
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={() => startEditing(question)}
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeQuestion(question.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
