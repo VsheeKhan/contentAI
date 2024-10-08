@@ -97,7 +97,7 @@ export async function loginUser(
         message: "Login successful",
         name: user.name,
         email: user.email,
-        profileImage: `uploads/${user.profileImage}` || "", 
+        profileImage: user.profileImage ? `/uploads/${user.profileImage}` : "",
         isPersonaAvailable,
         token,
       };
