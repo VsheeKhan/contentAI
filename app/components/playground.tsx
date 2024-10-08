@@ -44,9 +44,9 @@ export default function Playground() {
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    fetchPosts();
-    fetchTopics();
-    fetchPersona();
+    if (posts.length === 0) fetchPosts();
+    if (topics.length === 0) fetchTopics();
+    if (persona.length === 0) fetchPersona();
   }, []);
 
   const fetchPosts = async () => {
@@ -113,7 +113,6 @@ export default function Playground() {
       }
       const personaDetails = await response.json();
       setPersona(personaDetails.personaData);
-      // setPersonaString(personaDetails.personaData);
     } catch (err) {
       console.error("Error fetching persona details", err);
       toast({
