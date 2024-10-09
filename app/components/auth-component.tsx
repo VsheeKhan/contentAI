@@ -80,7 +80,8 @@ export default function AuthComponent() {
         const data = await response.json();
         const isAdmin: boolean = await login(
           data.token,
-          data.isPersonaAvailable
+          data.isPersonaAvailable,
+          data.profileImage
         );
         console.log("Login successful");
         if (isAdmin) router.push("/admin/dashboard");
