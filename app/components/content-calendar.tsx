@@ -10,8 +10,8 @@ import {
   startOfMonth,
   subMonths,
 } from "date-fns";
-import { Ban, CalendarCheck2, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Ban, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Post } from "./playground";
+import SchedulePost from "./schedule-post";
 
 interface ContentCalendarProps {
   scheduledPosts: Post[];
@@ -40,6 +40,33 @@ export default function ContentCalendar({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isContentViewerOpen, setIsContentViewerOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPostIndex, setSelectedPostIndex] = useState<number | null>(
+    null
+  );
+  const [scheduleStates, setScheduleStates] = useState<
+    {
+      isOpen: boolean;
+      selectedDate: Date;
+      currentMonth: number;
+      currentYear: number;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    const newStates = scheduledPosts.map((post) => ({
+      isOpen: false,
+      selectedDate: post.scheduleDate
+        ? parseISO(post.scheduleDate)
+        : new Date(),
+      currentMonth: post.scheduleDate
+        ? parseISO(post.scheduleDate).getMonth()
+        : new Date().getMonth(),
+      currentYear: post.scheduleDate
+        ? parseISO(post.scheduleDate).getFullYear()
+        : new Date().getFullYear(),
+    }));
+    setScheduleStates(newStates);
+  }, [scheduledPosts]);
 
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
@@ -72,7 +99,11 @@ export default function ContentCalendar({
         formattedDate = format(day, dateFormat);
         const cloneDay = day;
         const dayPosts = scheduledPosts.filter((post) => {
-          if (post.scheduleDate && !post.isCanceled)
+          if (
+            post.scheduleDate &&
+            !post.isCanceled &&
+            scheduleStates.length > 0
+          )
             return isSameDay(parseISO(post.scheduleDate), cloneDay);
         });
         days.push(
@@ -117,33 +148,51 @@ export default function ContentCalendar({
   };
 
   const handleOpenContentViewer = (post: Post) => {
+    const postIndex = scheduledPosts.findIndex((p) => p.id === post.id);
     setSelectedPost(post);
+    setSelectedPostIndex(postIndex);
     setIsContentViewerOpen(true);
+    if (postIndex !== -1 && post.scheduleDate) {
+      const scheduledDate = parseISO(post.scheduleDate);
+      setScheduleStates((prev) =>
+        prev.map((state, index) =>
+          index === postIndex
+            ? {
+                ...state,
+                selectedDate: scheduledDate,
+                currentMonth: scheduledDate.getMonth(),
+                currentYear: scheduledDate.getFullYear(),
+              }
+            : state
+        )
+      );
+    }
   };
 
   const onCancelScheduledPost = async () => {
     if (selectedPost) {
       await handleCancelScheduledPost(selectedPost.id);
       setIsContentViewerOpen(false);
-      setSelectedPost(null);
     }
   };
 
-  const onReschedulePost = () => {
-    if (selectedPost) {
-      const newScheduleDate = prompt(
-        "Enter new schedule date (yyyy-mm-dd)"
-        // format(parseISO(selectedPost.scheduleDate), "yyyy-MM-dd")
+  const onReschedulePost = async (index: number) => {
+    if (selectedPost && index != -1) {
+      const newScheduleDate = scheduleStates[index].selectedDate.toISOString();
+      await handleReschedulePost(
+        {
+          content: selectedPost.content,
+          scheduleDate: scheduleStates[index].selectedDate,
+        },
+        scheduledPosts[index].id,
+        true
       );
-      if (newScheduleDate) {
-        // handleUpdatePost(
-        //   { scheduleDate: newScheduleDate },
-        //   selectedPost.id,
-        //   true
-        // );
-        setIsContentViewerOpen(false);
-        setSelectedPost(null);
-      }
+      const newIndex = scheduledPosts.findIndex(
+        (post) => post.id === selectedPost.id
+      );
+      setSelectedPostIndex(newIndex);
+      setIsContentViewerOpen(false);
+      setSelectedPost(null);
     }
   };
 
@@ -208,10 +257,13 @@ export default function ContentCalendar({
             <p className="min-h-[200px]">{selectedPost?.content || ""}</p>
           </div>
           <DialogFooter className="sm:justify-between">
-            <Button onClick={onReschedulePost}>
-              <CalendarCheck2 className="mr-2 h-4 w-4" />
-              Reschedule Post
-            </Button>
+            <SchedulePost
+              buttonName="Reschedule Post"
+              generatedIndex={selectedPostIndex ?? -1}
+              onSchedulePost={onReschedulePost}
+              scheduleStates={scheduleStates}
+              setScheduleStates={setScheduleStates}
+            />
             <Button variant="destructive" onClick={onCancelScheduledPost}>
               <Ban className="mr-2 h-4 w-4" />
               Cancel Scheduled Post

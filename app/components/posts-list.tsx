@@ -205,7 +205,7 @@ export default function PostsList({
                   <div>
                     <div className="flex space-x-2 items-center">
                       <h3 className="font-bold">{user?.name}</h3>
-                      {!post.scheduleDate || post.isCanceled ? (
+                      {!post.scheduleDate || post.isCanceled === true ? (
                         <Badge variant="destructive">Unscheduled</Badge>
                       ) : null}
                     </div>
@@ -230,6 +230,7 @@ export default function PostsList({
               <div className="flex flex-row-reverse">
                 {(!post.scheduleDate || post.isCanceled) && (
                   <SchedulePost
+                    buttonName="Schedule"
                     generatedIndex={index}
                     scheduleStates={scheduleStates}
                     setScheduleStates={setScheduleStates}

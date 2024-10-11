@@ -312,6 +312,7 @@ export default function GeneratePost({
                     </Tooltip>
                   </TooltipProvider>
                   <SchedulePost
+                    buttonName="Schedule"
                     onSchedulePost={onSchedulePost}
                     generatedIndex={generatedIndex}
                     scheduleStates={scheduleStates}

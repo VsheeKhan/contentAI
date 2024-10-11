@@ -31,6 +31,7 @@ function getFirstDayOfMonth(year: number, month: number) {
 }
 
 interface SchedulePostProps {
+  buttonName: string;
   generatedIndex: number;
   onSchedulePost: (index: number) => void;
   scheduleStates: {
@@ -52,11 +53,18 @@ interface SchedulePostProps {
 }
 
 export default function SchedulePost({
+  buttonName,
   generatedIndex,
   onSchedulePost,
   scheduleStates,
   setScheduleStates,
 }: SchedulePostProps) {
+  if (generatedIndex === -1 || !scheduleStates[generatedIndex]) {
+    console.error(`Invalid generatedIndex: ${generatedIndex}`);
+    return null;
+  }
+  const currentState = scheduleStates[generatedIndex];
+
   const handlePrevMonth = (index: number) => {
     setScheduleStates((prev) =>
       prev.map((state, i) => {
@@ -91,10 +99,10 @@ export default function SchedulePost({
     );
   };
 
-  const handleDateClick = (index: number, day: number) => {
+  const handleDateClick = (day: number) => {
     setScheduleStates((prev) =>
       prev.map((state, i) => {
-        if (i === index) {
+        if (i === generatedIndex) {
           return {
             ...state,
             selectedDate: new Date(state.currentYear, state.currentMonth, day),
@@ -105,8 +113,8 @@ export default function SchedulePost({
     );
   };
 
-  const renderCalendar = (index: number) => {
-    const { currentYear, currentMonth, selectedDate } = scheduleStates[index];
+  const renderCalendar = () => {
+    const { currentYear, currentMonth, selectedDate } = currentState;
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
     const days = [];
@@ -123,11 +131,11 @@ export default function SchedulePost({
       days.push(
         <button
           key={day}
-          onClick={() => handleDateClick(index, day)}
+          onClick={() => handleDateClick(day)}
           className={`w-8 h-8 rounded-full flex items-center justify-center text-sm
-                    ${
-                      isSelected ? "bg-black text-white" : "hover:bg-gray-200"
-                    }`}
+                      ${
+                        isSelected ? "bg-black text-white" : "hover:bg-gray-200"
+                      }`}
         >
           {day}
         </button>
@@ -138,7 +146,7 @@ export default function SchedulePost({
   };
   return (
     <Popover
-      open={scheduleStates[generatedIndex].isOpen}
+      open={currentState.isOpen}
       onOpenChange={(open: boolean) => {
         setScheduleStates((prev) =>
           prev.map((state, i) =>
@@ -150,7 +158,7 @@ export default function SchedulePost({
       <PopoverTrigger asChild>
         <Button variant="outline">
           <Clock className="mr-2 h-4 w-4" />
-          Schedule
+          {buttonName}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -163,8 +171,9 @@ export default function SchedulePost({
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="font-semibold">
-              {months[scheduleStates[generatedIndex].currentMonth]}{" "}
-              {scheduleStates[generatedIndex].currentYear}
+              {/* {months[scheduleStates[generatedIndex].currentMonth]}{" "}
+              {scheduleStates[generatedIndex].currentYear} */}
+              {months[currentState.currentMonth]} {currentState.currentYear}
             </div>
             <button
               onClick={() => handleNextMonth(generatedIndex)}
@@ -183,9 +192,7 @@ export default function SchedulePost({
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
-            {renderCalendar(generatedIndex)}
-          </div>
+          <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
           <Button
             onClick={() => onSchedulePost(generatedIndex)}
             className="w-full mt-4"
