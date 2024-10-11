@@ -227,7 +227,7 @@ export default function PostsList({
                   <p className="mb-2">{post.content}</p>
                 )}
               </div>
-              <div className="flex flex-row-reverse">
+              {/* <div className="flex flex-row-reverse">
                 {(!post.scheduleDate || post.isCanceled) && (
                   <SchedulePost
                     buttonName="Schedule"
@@ -237,7 +237,7 @@ export default function PostsList({
                     onSchedulePost={onSchedulePost}
                   />
                 )}
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         ))
