@@ -189,11 +189,11 @@ export async function cancelPostScheduleHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === "PUT") {
+  if (req.method === "POST") {
     try {
       await connectToDatabase();
 
-      const { postId } = req.query;
+      const { postId } = req.body;
 
       const post = await cancelPostSchedule(postId as string);
 

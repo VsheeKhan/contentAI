@@ -296,8 +296,12 @@ export default function Playground() {
 
   const handleCancelScheduledPost = async (postId: string) => {
     try {
-      const response = await authFetch(`/api/cancel-post-schedule/${postId}`, {
-        method: "PUT",
+      const response = await authFetch(`/api/cancel-post-schedule`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ postId }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -314,13 +318,12 @@ export default function Playground() {
         createdAt,
         scheduleDate,
         isCanceled,
-      } = updatedPost;
-      console.log(updatedPost);
+      } = updatedPost.post;
       setPosts(
         posts.map((post) =>
-          post.id === updatedPost._id
+          post.id === updatedPost.post._id
             ? {
-                id: updatedPost._id,
+                id: updatedPost.post._id,
                 userId,
                 content,
                 tone,
