@@ -11,8 +11,14 @@ import FreeTrialMonitoring from "../../components/free-trial-monitoring";
 import SubscriptionControl from "../../components/subscription-control";
 import LogoutButton from "@/app/components/logout-button";
 
+type TabTypes =
+  | "analytics"
+  | "questions"
+  | "users"
+  | "trials"
+  | "subscriptions";
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("questions");
+  const [activeTab, setActiveTab] = useState<TabTypes>("analytics");
 
   return (
     <ProtectedLayout>
