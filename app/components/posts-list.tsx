@@ -11,9 +11,10 @@ import { Copy, FileText, PenLine, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Post } from "./playground";
 import { formatDistance } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import { Badge } from "@/components/ui/badge";
+import SchedulePost from "./schedule-post";
 
 interface PostsListProps {
   posts: Post[];
@@ -28,7 +29,34 @@ export default function PostsList({
 }: PostsListProps) {
   const [editedPost, setEditedPost] = useState("");
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [scheduleStates, setScheduleStates] = useState<
+    {
+      isOpen: boolean;
+      selectedDate: Date;
+      currentMonth: number;
+      currentYear: number;
+    }[]
+  >([]);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const newStates = posts.map(() => ({
+      isOpen: false,
+      selectedDate: new Date(),
+      currentMonth: new Date().getMonth(),
+      currentYear: new Date().getFullYear(),
+    }));
+    setScheduleStates(newStates);
+  }, [posts]);
+
+  const onSchedulePost = async (index: number) => {
+    setScheduleStates((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, isOpen: false } : state
+      )
+    );
+    onUpatePost(index);
+  };
 
   const handleCopyPost = (post: Post) => {
     console.log("Post copied ", post);
@@ -39,8 +67,10 @@ export default function PostsList({
     setEditedPost(editingPostId === post.id ? "" : post.content);
   };
 
-  const onUpatePost = async () => {
-    const postToUpdate = posts.find((post) => post.id === editingPostId);
+  const onUpatePost = async (index?: number) => {
+    const postToUpdate = index
+      ? posts[index]
+      : posts.find((post) => post.id === editingPostId);
     if (!postToUpdate) throw new Error("Post not found");
     if (editingPostId)
       await handleUpdatePost(
@@ -52,6 +82,14 @@ export default function PostsList({
           content: editedPost,
         },
         editingPostId
+      );
+    else if (index)
+      await handleUpdatePost(
+        {
+          content: postToUpdate.content,
+          scheduleDate: scheduleStates[index].selectedDate,
+        },
+        posts[index].id
       );
     setEditedPost("");
     setEditingPostId(null);
@@ -70,7 +108,8 @@ export default function PostsList({
           </CardContent>
         </Card>
       ) : (
-        posts.map((post) => (
+        scheduleStates.length > 0 &&
+        posts.map((post, index) => (
           <Card key={post.id}>
             <CardContent className="p-6">
               <div className="flex flex-row-reverse justify-between items-center mb-4">
@@ -114,6 +153,7 @@ export default function PostsList({
                           variant="ghost"
                           size="icon"
                           onClick={() => onUpatePost()}
+                          disabled={editingPostId !== post.id}
                         >
                           <FileText className="h-4 w-4" />
                         </Button>
@@ -185,6 +225,16 @@ export default function PostsList({
                   />
                 ) : (
                   <p className="mb-2">{post.content}</p>
+                )}
+              </div>
+              <div className="flex flex-row-reverse">
+                {(!post.scheduleDate || post.isCanceled) && (
+                  <SchedulePost
+                    generatedIndex={index}
+                    scheduleStates={scheduleStates}
+                    setScheduleStates={setScheduleStates}
+                    onSchedulePost={onSchedulePost}
+                  />
                 )}
               </div>
             </CardContent>
