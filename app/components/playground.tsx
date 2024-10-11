@@ -30,13 +30,8 @@ export type Post = {
   tone: string;
   platform: string;
   createdAt: string;
-  scheduledAt?: string;
-};
-
-export type ScheduledPost = {
-  id: string;
-  content: string;
-  date: string;
+  scheduleDate?: string;
+  isCanceled?: boolean;
 };
 
 export default function Playground() {
@@ -46,11 +41,7 @@ export default function Playground() {
   const [topics, setTopics] = useState<string[]>([]);
   const [persona, setPersona] = useState("");
   const [activeTab, setActiveTab] = useState<TabTypes>("generate");
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([
-    { id: "1", content: "Post about AI", date: "2024-10-15" },
-    { id: "2", content: "UX design trends", date: "2024-10-20" },
-    { id: "3", content: "Machine learning basics", date: "2024-10-25" },
-  ]);
+
   const { user, logout, updateUserProfileImage, updateUserToken } = useAuth();
 
   useEffect(() => {
@@ -107,7 +98,7 @@ export default function Playground() {
         throw new Error(error.message);
       }
       const data = await response.json();
-      return data.post;
+      return data.posts;
     } catch (err) {
       console.error("Error generating post: ", err);
       toast({
@@ -128,7 +119,8 @@ export default function Playground() {
         body: JSON.stringify(requestBody),
       });
       if (!response.ok) {
-        throw new Error("Failed to create post");
+        const error = await response.json();
+        throw new Error(error.message);
       }
       const {
         content,
@@ -139,6 +131,8 @@ export default function Playground() {
         tone,
         _id,
         userId,
+        scheduleDate,
+        isCanceled,
       } = await response.json();
       setPosts((prevPosts) => [
         ...prevPosts,
@@ -151,17 +145,21 @@ export default function Playground() {
           tone,
           topic,
           userId,
+          scheduleDate,
+          isCanceled,
         },
       ]);
       toast({
         title: "Post created",
-        description: "Your post has been successfully created and saved.",
+        description: scheduleDate
+          ? "Your post has been successfully scheduled."
+          : "Your post has been successfully created and saved.",
       });
     } catch (err) {
       console.error("Error creating post", err);
       toast({
         title: "Error",
-        description: "Failed to create post. Please try again.",
+        description: err + "Failed to create post. Please try again.",
         variant: "destructive",
       });
     }
@@ -185,7 +183,9 @@ export default function Playground() {
             tone,
             platform,
             createdAt,
-          }) => ({
+            scheduleDate,
+            isCanceled,
+          }: Post) => ({
             id: _id,
             userId,
             content,
@@ -194,6 +194,8 @@ export default function Playground() {
             tone,
             platform,
             createdAt,
+            scheduleDate,
+            isCanceled,
           })
         )
       );
@@ -207,7 +209,11 @@ export default function Playground() {
     }
   };
 
-  const handleUpdatePost = async (requestBody: any, editingPostId: string) => {
+  const handleUpdatePost = async (
+    requestBody: any,
+    editingPostId: string,
+    reschedule?: boolean
+  ) => {
     try {
       const response = await authFetch(`/api/posts/${editingPostId}`, {
         method: "PUT",
@@ -220,8 +226,17 @@ export default function Playground() {
         throw new Error("Failed to update post");
       }
       const updatedPost = await response.json();
-      const { userId, content, topic, industry, platform, tone, createdAt } =
-        updatedPost;
+      const {
+        userId,
+        content,
+        topic,
+        industry,
+        platform,
+        tone,
+        createdAt,
+        scheduleDate,
+        isCanceled,
+      } = updatedPost;
       setPosts(
         posts.map((post) =>
           post.id === updatedPost._id
@@ -234,13 +249,17 @@ export default function Playground() {
                 industry,
                 platform,
                 createdAt,
+                scheduleDate,
+                isCanceled,
               }
             : post
         )
       );
       toast({
-        title: "Post updated",
-        description: "Your post has been successfully updated.",
+        title: reschedule ? "Post rescheduled." : "Post updated.",
+        description: reschedule
+          ? "Your post has been successfully rescheduled."
+          : "Your post has been successfully updated.",
       });
     } catch (err) {
       console.error("Error updating post", err);
@@ -275,6 +294,60 @@ export default function Playground() {
     }
   };
 
+  const handleCancelScheduledPost = async (postId: string) => {
+    try {
+      const response = await authFetch(`/api/cancel-post-schedule/${postId}`, {
+        method: "PUT",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+      const updatedPost = await response.json();
+      const {
+        userId,
+        content,
+        topic,
+        industry,
+        platform,
+        tone,
+        createdAt,
+        scheduleDate,
+        isCanceled,
+      } = updatedPost;
+      console.log(updatedPost);
+      setPosts(
+        posts.map((post) =>
+          post.id === updatedPost._id
+            ? {
+                id: updatedPost._id,
+                userId,
+                content,
+                tone,
+                topic,
+                industry,
+                platform,
+                createdAt,
+                scheduleDate,
+                isCanceled,
+              }
+            : post
+        )
+      );
+      toast({
+        title: "Post canceled",
+        description: "Your scheduled post has been successfully canceled.",
+      });
+    } catch (err) {
+      console.error("Error canceling scheduled post", err);
+      toast({
+        title: "Error",
+        description: err + "Failed to cancel scheduled post. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchPersona = async () => {
     try {
       const response = await authFetch("/api/digital-persona");
@@ -288,35 +361,6 @@ export default function Playground() {
       toast({
         title: "Error",
         description: "Failed to fetch persona details. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSavePersona = async (personaString: string) => {
-    try {
-      const response = await authFetch("/api/digital-persona", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ personaData: personaString }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save persona");
-      }
-      const updatedPersona = await response.json();
-      setPersona(updatedPersona.personaData);
-      toast({
-        title: "Persona updated",
-        description: "Your persona has been successfully updated.",
-      });
-    } catch (err) {
-      console.error("Error updating persona", err);
-      toast({
-        title: "Error",
-        description: "Failed to update persona. Please try again.",
         variant: "destructive",
       });
     }
@@ -351,10 +395,6 @@ export default function Playground() {
       });
       return { status: "failure", data: err };
     }
-  };
-
-  const handleSchedulePost = async (newPost: ScheduledPost) => {
-    setScheduledPosts([...scheduledPosts, newPost]);
   };
 
   if (isLoading) {
@@ -461,11 +501,9 @@ export default function Playground() {
           {activeTab === "generate" && (
             <GeneratePost
               handleSavePost={handleSavePost}
-              activeTab={activeTab}
               handleGenerateTopics={handleGenerateTopics}
               handleGeneratePost={handleGeneratePost}
               topics={topics}
-              handleSchedulePost={handleSchedulePost}
             />
           )}
 
@@ -478,13 +516,16 @@ export default function Playground() {
           )}
 
           {activeTab === "calendar" && (
-            <ContentCalendar scheduledPosts={scheduledPosts} />
+            <ContentCalendar
+              scheduledPosts={posts}
+              handleReschedulePost={handleUpdatePost}
+              handleCancelScheduledPost={handleCancelScheduledPost}
+            />
           )}
 
           {activeTab === "settings" && (
             <ProfileSettings
               persona={persona}
-              handleSavePersona={handleSavePersona}
               handleSaveProfile={handleSaveProfile}
             />
           )}

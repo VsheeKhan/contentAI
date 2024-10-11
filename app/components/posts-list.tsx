@@ -165,7 +165,7 @@ export default function PostsList({
                   <div>
                     <div className="flex space-x-2 items-center">
                       <h3 className="font-bold">{user?.name}</h3>
-                      {!post.scheduledAt ? (
+                      {!post.scheduleDate || post.isCanceled ? (
                         <Badge variant="destructive">Unscheduled</Badge>
                       ) : null}
                     </div>

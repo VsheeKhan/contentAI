@@ -12,7 +12,6 @@ import {
 } from "date-fns";
 import { Ban, CalendarCheck2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { ScheduledPost } from "./playground";
 import {
   Dialog,
   DialogContent,
@@ -21,17 +20,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Post } from "./playground";
 
 interface ContentCalendarProps {
-  scheduledPosts: ScheduledPost[];
+  scheduledPosts: Post[];
+  handleReschedulePost: (
+    requestBody: any,
+    postId: string,
+    reschedule: boolean
+  ) => Promise<void>;
+  handleCancelScheduledPost: (postId: string) => Promise<void>;
 }
 
 export default function ContentCalendar({
   scheduledPosts,
+  handleReschedulePost,
+  handleCancelScheduledPost,
 }: ContentCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [isContentViewerOpen, setIsContentViewerOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
@@ -63,9 +71,10 @@ export default function ContentCalendar({
       for (let i = 0; i < 7; i++) {
         formattedDate = format(day, dateFormat);
         const cloneDay = day;
-        const dayPosts = scheduledPosts.filter((post) =>
-          isSameDay(parseISO(post.date), cloneDay)
-        );
+        const dayPosts = scheduledPosts.filter((post) => {
+          if (post.scheduleDate && !post.isCanceled)
+            return isSameDay(parseISO(post.scheduleDate), cloneDay);
+        });
         days.push(
           <div
             className={`bg-white p-2 min-h-[100px] ${
@@ -107,18 +116,34 @@ export default function ContentCalendar({
     );
   };
 
-  const handleOpenContentViewer = (post: ScheduledPost) => {
+  const handleOpenContentViewer = (post: Post) => {
     setSelectedPost(post);
     setIsContentViewerOpen(true);
   };
 
-  const handleCancelScheduledPost = () => {
+  const onCancelScheduledPost = async () => {
     if (selectedPost) {
-      setScheduledPosts(
-        scheduledPosts.filter((post) => post.id !== selectedPost.id)
-      );
+      await handleCancelScheduledPost(selectedPost.id);
       setIsContentViewerOpen(false);
       setSelectedPost(null);
+    }
+  };
+
+  const onReschedulePost = () => {
+    if (selectedPost) {
+      const newScheduleDate = prompt(
+        "Enter new schedule date (yyyy-mm-dd)"
+        // format(parseISO(selectedPost.scheduleDate), "yyyy-MM-dd")
+      );
+      if (newScheduleDate) {
+        // handleUpdatePost(
+        //   { scheduleDate: newScheduleDate },
+        //   selectedPost.id,
+        //   true
+        // );
+        setIsContentViewerOpen(false);
+        setSelectedPost(null);
+      }
     }
   };
 
@@ -165,18 +190,29 @@ export default function ContentCalendar({
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-gray-500 mb-2">
-              Scheduled for:{" "}
               {selectedPost &&
-                format(parseISO(selectedPost.date), "MMMM d, yyyy")}
+                selectedPost.createdAt &&
+                `Created At: ${format(
+                  parseISO(selectedPost.createdAt),
+                  "MMMM d, yyyy"
+                )}`}
+            </p>
+            <p className="text-sm text-gray-500 mb-2">
+              {selectedPost &&
+                selectedPost.scheduleDate &&
+                `Scheduled for: ${format(
+                  parseISO(selectedPost.scheduleDate),
+                  "MMMM d, yyyy"
+                )}`}
             </p>
             <p className="min-h-[200px]">{selectedPost?.content || ""}</p>
           </div>
-          <DialogFooter>
-            <Button>
+          <DialogFooter className="sm:justify-between">
+            <Button onClick={onReschedulePost}>
               <CalendarCheck2 className="mr-2 h-4 w-4" />
               Reschedule Post
             </Button>
-            <Button variant="destructive" onClick={handleCancelScheduledPost}>
+            <Button variant="destructive" onClick={onCancelScheduledPost}>
               <Ban className="mr-2 h-4 w-4" />
               Cancel Scheduled Post
             </Button>
