@@ -1,8 +1,14 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { generatePost, generatePostTopics } from '../services/openAIService';
-import { createPost, getAllPostsByUserId, updatePost, deletePost, cancelPostSchedule } from '../services/postService';
-import { storeCustomTopics, getCustomTopics } from '../services/topicService';
-import connectToDatabase from '../lib/mongodb';
+import { NextApiRequest, NextApiResponse } from "next";
+import { generatePost, generatePostTopics } from "../services/openAIService";
+import {
+  createPost,
+  getAllPostsByUserId,
+  updatePost,
+  deletePost,
+  cancelPostSchedule,
+} from "../services/postService";
+import { storeCustomTopics, getCustomTopics } from "../services/topicService";
+import connectToDatabase from "../lib/mongodb";
 
 // Handler to generate digital persona
 export async function generatePostHandler(
@@ -25,11 +31,18 @@ export async function generatePostHandler(
       const platform = req.body.platform || "";
       const noOfPosts = req.body.noOfPosts || 1;
       if (!topic) {
-        return res.status(400).json({ message: "topic is required" });
+        return res.status(400).json({ message: "Topic is required" });
       }
-      const rawData:any = await generatePost(userId, topic, industry, tone, platform, noOfPosts);
-      const cleanedData = rawData.replace(/^```json\n|\n```$/g, '');
-      let posts = JSON.parse(cleanedData);;
+      const rawData: any = await generatePost(
+        userId,
+        topic,
+        industry,
+        tone,
+        platform,
+        noOfPosts
+      );
+      const cleanedData = rawData.replace(/^```json\n|\n```$/g, "");
+      const posts = JSON.parse(cleanedData);
       res.status(200).json({ posts });
     } catch (error) {
       res.status(500).json({
@@ -62,8 +75,8 @@ export async function createPostHandler(
       const industry = req.body.industry || "";
       const tone = req.body.tone || "";
       const platform = req.body.platform || "";
-      const scheduleDate = req.body.scheduleDate;
-      if (!topic || !generatedPost || !scheduleDate) {
+      const scheduleDate = req.body.scheduleDate || null;
+      if (!topic || !generatedPost) {
         return res
           .status(400)
           .json({ message: "generatedPost, topic, are required" });
@@ -176,22 +189,22 @@ export async function cancelPostScheduleHandler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === "PUT") {
+  if (req.method === "POST") {
     try {
       await connectToDatabase();
 
-      const { postId } = req.query;
+      const { postId } = req.body;
 
       const post = await cancelPostSchedule(postId as string);
 
-      res.status(200).json({ message: "Post schedule canceled successfully", post });
-    } catch (error) {
       res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+        .status(200)
+        .json({ message: "Post schedule canceled successfully", post });
+    } catch (error) {
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["DELETE"]);

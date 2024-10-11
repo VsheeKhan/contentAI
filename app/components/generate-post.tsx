@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -20,17 +20,16 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 import { useAuth } from "../contexts/auth-context";
+import SchedulePost from "./schedule-post";
 
 interface GeneratePostProps {
-  activeTab: string;
   handleSavePost: (requestBody: any) => Promise<void>;
   topics: string[];
   handleGenerateTopics: () => Promise<void>;
-  handleGeneratePost: (requestBody: any) => Promise<string>;
+  handleGeneratePost: (requestBody: any) => Promise<{ post: string }[]>;
 }
 
 export default function GeneratePost({
-  activeTab,
   handleSavePost,
   topics,
   handleGenerateTopics,
@@ -41,24 +40,63 @@ export default function GeneratePost({
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [selectedTone, setSelectedTone] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("");
+  const [noOfPosts, setNoOfPosts] = useState(1);
   const [isGeneratingTopics, setIsGeneratingTopics] = useState(false);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-  const [generatedPost, setGeneratedPost] = useState("");
+  const [generatedPosts, setGeneratedPosts] = useState<{ post: string }[]>([]);
+  const [scheduleStates, setScheduleStates] = useState<
+    {
+      isOpen: boolean;
+      selectedDate: Date;
+      currentMonth: number;
+      currentYear: number;
+    }[]
+  >([]);
+
   const { user } = useAuth();
 
-  const onSavePost = async () => {
-    await handleSavePost({
-      topic: selectedTopic,
-      industry: selectedIndustry,
-      tone: selectedTone,
-      platform: selectedPlatform,
-      generatedPost,
-    });
-    setGeneratedPost("");
-    setSelectedTopic("");
-    setSelectedIndustry("");
-    setSelectedTone("");
-    setSelectedPlatform("");
+  useEffect(() => {
+    const newStates = generatedPosts.map(() => ({
+      isOpen: false,
+      selectedDate: new Date(),
+      currentMonth: new Date().getMonth(),
+      currentYear: new Date().getFullYear(),
+    }));
+    setScheduleStates(newStates);
+  }, [generatedPosts]);
+
+  const onSchedulePost = (index: number) => {
+    setScheduleStates((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, isOpen: false } : state
+      )
+    );
+    onSavePost(generatedPosts[index].post, scheduleStates[index].selectedDate);
+  };
+
+  const onSavePost = async (generatedPost: string, scheduleDate?: Date) => {
+    try {
+      await handleSavePost({
+        topic: selectedTopic,
+        industry: selectedIndustry,
+        tone: selectedTone,
+        platform: selectedPlatform,
+        scheduleDate,
+        generatedPost,
+      });
+      const updatedPosts = generatedPosts.filter(
+        (currentPost) => currentPost.post !== generatedPost
+      );
+      setGeneratedPosts(updatedPosts);
+      if (updatedPosts.length === 0) {
+        setSelectedTopic("");
+        setSelectedIndustry("");
+        setSelectedTone("");
+        setSelectedPlatform("");
+      }
+    } catch (err) {
+      console.error("Error saving post: ", err);
+    }
   };
 
   const onGenerateTopics = async () => {
@@ -69,13 +107,14 @@ export default function GeneratePost({
 
   const onGeneratePost = async () => {
     setIsGeneratingPost(true);
-    const post = await handleGeneratePost({
+    const posts = await handleGeneratePost({
       topic: selectedTopic,
       industry: selectedIndustry,
       tone: selectedTone,
       platform: selectedPlatform,
+      noOfPosts,
     });
-    setGeneratedPost(post);
+    setGeneratedPosts(posts);
     setIsGeneratingPost(false);
   };
 
@@ -95,7 +134,10 @@ export default function GeneratePost({
           <h2 className="text-xl font-semibold mb-4">
             What would you like to post?
           </h2>
-          <Tabs defaultValue="topic" onValueChange={() => setGeneratedPost("")}>
+          <Tabs
+            defaultValue="topic"
+            onValueChange={() => setGeneratedPosts([])}
+          >
             <TabsList className="w-full">
               <TabsTrigger value="topic" className="flex-1">
                 Topic Suggestion
@@ -203,6 +245,16 @@ export default function GeneratePost({
               </div>
             </TabsContent>
           </Tabs>
+          <div className="mt-4 flex items-center space-x-2">
+            <Input
+              type="number"
+              min="1"
+              value={noOfPosts}
+              onChange={(e) => setNoOfPosts(parseInt(e.target.value))}
+              className="w-20"
+            />
+            <span>Number of posts to generate</span>
+          </div>
           <Button
             className="w-full mt-4 bg-pink-500 hover:bg-pink-600"
             onClick={onGeneratePost}
@@ -215,47 +267,74 @@ export default function GeneratePost({
           </Button>
         </CardContent>
       </Card>
-      {generatedPost && activeTab === "generate" && (
-        <Card className="mt-6">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center space-x-2">
-                <span className="w-8 h-8 bg-pink-500 rounded-full">
-                  {user?.profileImage ? (
-                    <Image
-                      src={user.profileImage}
-                      alt="Profile"
-                      width={500}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : null}
-                </span>
-                <span className="font-semibold">AI Generated</span>
+      {generatedPosts &&
+        scheduleStates.length > 0 &&
+        generatedPosts.map((generatedPost, generatedIndex) => (
+          <Card key={generatedIndex} className="mt-6">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center space-x-2">
+                  <span className="w-8 h-8 bg-pink-500 rounded-full">
+                    {user?.profileImage && user.profileImage.length > 0 ? (
+                      <Image
+                        src={user.profileImage}
+                        alt="Profile"
+                        width={500}
+                        height={300}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src={"/uploads/person.png"}
+                        alt="Profile"
+                        width={500}
+                        height={300}
+                      />
+                    )}
+                  </span>
+                  <span className="font-semibold">AI Generated</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onSavePost(generatedPost.post)}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Save</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <SchedulePost
+                    buttonName="Schedule"
+                    onSchedulePost={onSchedulePost}
+                    generatedIndex={generatedIndex}
+                    scheduleStates={scheduleStates}
+                    setScheduleStates={setScheduleStates}
+                  />
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onSavePost}>
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Save</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            <Textarea
-              value={generatedPost}
-              onChange={(e) => setGeneratedPost(e.target.value)}
-              className="min-h-[200px]"
-            />
-          </CardContent>
-        </Card>
-      )}
+              <Textarea
+                className="min-h-[200px]"
+                value={generatedPost.post}
+                onChange={(e) => {
+                  setGeneratedPosts(
+                    generatedPosts.map((post, index) => {
+                      if (index === generatedIndex) post.post = e.target.value;
+                      return post;
+                    })
+                  );
+                }}
+              />
+            </CardContent>
+          </Card>
+        ))}
     </>
   );
 }

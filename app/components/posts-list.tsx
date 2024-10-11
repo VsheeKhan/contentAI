@@ -11,48 +11,88 @@ import { Copy, FileText, PenLine, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Post } from "./playground";
 import { formatDistance } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
+import { Badge } from "@/components/ui/badge";
+import SchedulePost from "./schedule-post";
 
 interface PostsListProps {
   posts: Post[];
-  handleUpdatePost: (requestBody: any) => Promise<void>;
+  handleUpdatePost: (requestBody: any, postId: string) => Promise<void>;
   handleDeletePost: (postId: string) => Promise<void>;
-  editingPostId: string | null;
-  updateEditingPostId: (id: string | null) => void;
 }
 
 export default function PostsList({
   posts,
   handleUpdatePost,
   handleDeletePost,
-  editingPostId,
-  updateEditingPostId,
 }: PostsListProps) {
   const [editedPost, setEditedPost] = useState("");
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [scheduleStates, setScheduleStates] = useState<
+    {
+      isOpen: boolean;
+      selectedDate: Date;
+      currentMonth: number;
+      currentYear: number;
+    }[]
+  >([]);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const newStates = posts.map(() => ({
+      isOpen: false,
+      selectedDate: new Date(),
+      currentMonth: new Date().getMonth(),
+      currentYear: new Date().getFullYear(),
+    }));
+    setScheduleStates(newStates);
+  }, [posts]);
+
+  const onSchedulePost = async (index: number) => {
+    setScheduleStates((prev) =>
+      prev.map((state, i) =>
+        i === index ? { ...state, isOpen: false } : state
+      )
+    );
+    onUpatePost(index);
+  };
 
   const handleCopyPost = (post: Post) => {
     console.log("Post copied ", post);
   };
 
   const handleEditPost = (post: Post) => {
-    updateEditingPostId(editingPostId === post.id ? null : post.id);
+    setEditingPostId(editingPostId === post.id ? null : post.id);
     setEditedPost(editingPostId === post.id ? "" : post.content);
   };
 
-  const onUpatePost = async () => {
-    const postToUpdate = posts.find((post) => post.id === editingPostId);
+  const onUpatePost = async (index?: number) => {
+    const postToUpdate = index
+      ? posts[index]
+      : posts.find((post) => post.id === editingPostId);
     if (!postToUpdate) throw new Error("Post not found");
-    await handleUpdatePost({
-      topic: postToUpdate.topic,
-      industry: postToUpdate.industry,
-      tone: postToUpdate.tone,
-      platform: postToUpdate.platform,
-      content: editedPost,
-    });
+    if (editingPostId)
+      await handleUpdatePost(
+        {
+          topic: postToUpdate.topic,
+          industry: postToUpdate.industry,
+          tone: postToUpdate.tone,
+          platform: postToUpdate.platform,
+          content: editedPost,
+        },
+        editingPostId
+      );
+    else if (index)
+      await handleUpdatePost(
+        {
+          content: postToUpdate.content,
+          scheduleDate: scheduleStates[index].selectedDate,
+        },
+        posts[index].id
+      );
     setEditedPost("");
-    updateEditingPostId(null);
+    setEditingPostId(null);
   };
 
   const onDeletePost = async (postId: string) => {
@@ -68,27 +108,12 @@ export default function PostsList({
           </CardContent>
         </Card>
       ) : (
-        posts.map((post) => (
+        scheduleStates.length > 0 &&
+        posts.map((post, index) => (
           <Card key={post.id}>
             <CardContent className="p-6">
               <div className="flex flex-row-reverse justify-between items-center mb-4">
                 <div className="flex items-center space-x-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditPost(post)}
-                        >
-                          <PenLine className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Edit</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -111,7 +136,24 @@ export default function PostsList({
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={() => handleEditPost(post)}
+                        >
+                          <PenLine className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={() => onUpatePost()}
+                          disabled={editingPostId !== post.id}
                         >
                           <FileText className="h-4 w-4" />
                         </Button>
@@ -143,7 +185,7 @@ export default function PostsList({
               <div className="bg-white rounded-lg shadow p-4 mb-4">
                 <div className="flex items-center mb-2">
                   <span className="w-12 h-12 bg-pink-500 rounded-full mr-4">
-                    {user?.profileImage ? (
+                    {user?.profileImage && user.profileImage.length > 0 ? (
                       <Image
                         src={user.profileImage}
                         alt="Profile"
@@ -151,10 +193,22 @@ export default function PostsList({
                         height={300}
                         className="w-full h-full object-cover"
                       />
-                    ) : null}
+                    ) : (
+                      <Image
+                        src={"/uploads/person.png"}
+                        alt="Profile"
+                        width={500}
+                        height={300}
+                      />
+                    )}
                   </span>
                   <div>
-                    <h3 className="font-bold">{user?.name}</h3>
+                    <div className="flex space-x-2 items-center">
+                      <h3 className="font-bold">{user?.name}</h3>
+                      {!post.scheduleDate || post.isCanceled === true ? (
+                        <Badge variant="destructive">Unscheduled</Badge>
+                      ) : null}
+                    </div>
                     <p className="text-sm text-gray-500">
                       • {formatDistance(new Date(), post.createdAt)} ago
                     </p>
@@ -173,6 +227,17 @@ export default function PostsList({
                   <p className="mb-2">{post.content}</p>
                 )}
               </div>
+              {/* <div className="flex flex-row-reverse">
+                {(!post.scheduleDate || post.isCanceled) && (
+                  <SchedulePost
+                    buttonName="Schedule"
+                    generatedIndex={index}
+                    scheduleStates={scheduleStates}
+                    setScheduleStates={setScheduleStates}
+                    onSchedulePost={onSchedulePost}
+                  />
+                )}
+              </div> */}
             </CardContent>
           </Card>
         ))

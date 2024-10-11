@@ -11,37 +11,45 @@ import FreeTrialMonitoring from "../../components/free-trial-monitoring";
 import SubscriptionControl from "../../components/subscription-control";
 import LogoutButton from "@/app/components/logout-button";
 
+type TabTypes =
+  | "analytics"
+  | "questions"
+  | "users"
+  | "trials"
+  | "subscriptions";
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("questions");
+  const [activeTab, setActiveTab] = useState<TabTypes>("analytics");
 
   return (
     <ProtectedLayout>
       <div className="container mx-auto p-6 h-full">
-        <LogoutButton />
+        <div className="flex justify-end">
+          <LogoutButton />
+        </div>
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="space-y-4"
+          className="space-y-4 w-full"
         >
-          <TabsList>
-            <TabsTrigger value="analytics">
+          <TabsList className="w-full flex justify-evenly">
+            <TabsTrigger value="analytics" className="flex-1">
               <BarChart className="mr-2 h-4 w-4" />
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="questions">
+            <TabsTrigger value="questions" className="flex-1">
               <FileQuestion className="mr-2 h-4 w-4" />
               Questions
             </TabsTrigger>
-            <TabsTrigger value="users">
+            <TabsTrigger value="users" className="flex-1">
               <Users className="mr-2 h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="trials">
+            <TabsTrigger value="trials" className="flex-1">
               <Users className="mr-2 h-4 w-4" />
               Free Trials
             </TabsTrigger>
-            <TabsTrigger value="subscriptions">
+            <TabsTrigger value="subscriptions" className="flex-1">
               <CreditCard className="mr-2 h-4 w-4" />
               Subscriptions
             </TabsTrigger>

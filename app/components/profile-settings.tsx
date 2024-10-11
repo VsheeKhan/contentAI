@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 
 type ProfileSettings = {
   firstName: string;
@@ -18,13 +17,11 @@ type ProfileSettings = {
 
 interface ProfileSettingsProps {
   persona: string;
-  handleSavePersona: (personaString: string) => Promise<void>;
-  handleSaveProfile: (formData: FormData) => Promise<void>;
+  handleSaveProfile: (formData: FormData) => Promise<any>;
 }
 
 export default function ProfileSettings({
   persona,
-  handleSavePersona,
   handleSaveProfile,
 }: ProfileSettingsProps) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -35,10 +32,7 @@ export default function ProfileSettings({
     password: "",
     confirmPassword: "",
   });
-  const [personaString, setPersonaString] = useState(persona);
-  const [isEditingPersona, setIsEditingPersona] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -56,10 +50,6 @@ export default function ProfileSettings({
     }
   }, []);
 
-  useEffect(() => {
-    setPersonaString(persona);
-  }, [persona]);
-
   const handleEditProfile = () => {
     setIsEditingProfile(true);
   };
@@ -73,7 +63,11 @@ export default function ProfileSettings({
       password: "",
       confirmPassword: "",
     });
-    setProfileImage(user?.profileImage || null);
+    setProfileImage(
+      user?.profileImage && user.profileImage.length > 0
+        ? user.profileImage
+        : null
+    );
   };
 
   const onSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -96,7 +90,8 @@ export default function ProfileSettings({
     if (fileInputRef.current?.files?.[0]) {
       formData.append("profileImage", fileInputRef.current.files[0]);
     }
-    await handleSaveProfile(formData);
+    const data = await handleSaveProfile(formData);
+    if (data.status === "failure") setProfileImage(null);
     setIsEditingProfile(false);
   };
 
@@ -105,19 +100,6 @@ export default function ProfileSettings({
   ) => {
     const { name, value } = e.target;
     setProfileSettings((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditPersona = () => {
-    setIsEditingPersona(true);
-  };
-
-  const handleCancelEditPersona = () => {
-    setIsEditingPersona(false);
-  };
-
-  const onSavePersona = async () => {
-    await handleSavePersona(personaString);
-    setIsEditingPersona(false);
   };
 
   const handleProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -296,38 +278,10 @@ export default function ProfileSettings({
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             Persona Settings
-            {!isEditingPersona && (
-              <Button variant="ghost" size="sm" onClick={handleEditPersona}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isEditingPersona ? (
-            <Textarea
-              value={personaString}
-              onChange={(e) => setPersonaString(e.target.value)}
-              className="min-h-[150px]"
-              placeholder="Describe your professional persona..."
-            />
-          ) : (
-            <p className="text-gray-900">{persona}</p>
-          )}
-          {isEditingPersona && (
-            <div className="flex space-x-2">
-              <Button
-                onClick={onSavePersona}
-                className="bg-pink-500 hover:bg-pink-600"
-              >
-                Save Persona
-              </Button>
-              <Button onClick={handleCancelEditPersona} variant="outline">
-                Cancel
-              </Button>
-            </div>
-          )}
+          <p className="text-gray-900">{persona}</p>
         </CardContent>
       </Card>
     </div>

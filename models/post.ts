@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IPost extends Document {
   userId: mongoose.Schema.Types.ObjectId;
@@ -15,7 +15,7 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     content: {
@@ -37,16 +37,17 @@ const postSchema: Schema<IPost> = new mongoose.Schema(
     },
     scheduleDate: {
       type: Date,
-      required: true,
+      // required: false,
     },
     isCanceled: {
       type: Boolean,
       default: false,
       required: true,
-    }
+    },
   },
   { timestamps: true }
 );
 
-const Post: Model<IPost> = mongoose.models.Post || mongoose.model<IPost>('Post', postSchema);
+const Post: Model<IPost> =
+  mongoose.models.Post || mongoose.model<IPost>("Post", postSchema);
 export default Post;
