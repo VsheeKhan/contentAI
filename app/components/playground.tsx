@@ -423,7 +423,13 @@ export default function Playground() {
       <div className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold flex items-center">
-            <span className="w-8 h-8 bg-pink-500 rounded-md mr-2 flex items-center justify-center overflow-hidden">
+            <span
+              className={`w-8 h-8 rounded-md mr-2 flex items-center justify-center overflow-hidden ${
+                !user?.profileImage || user.profileImage.length === 0
+                  ? "bg-pink-500"
+                  : ""
+              }`}
+            >
               {user?.profileImage && user.profileImage.length > 0 ? (
                 <Image
                   src={user.profileImage}
