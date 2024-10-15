@@ -25,7 +25,15 @@ interface SurveyResult {
   answer: string;
 }
 
-export default function PersonaSurvey() {
+interface PersonaSurveyProps {
+  editPersona: boolean;
+  handleUpdatePersona?: (persona: string) => void;
+}
+
+export default function PersonaSurvey({
+  editPersona,
+  handleUpdatePersona,
+}: PersonaSurveyProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -199,8 +207,11 @@ export default function PersonaSurvey() {
     }
   };
 
-  const handleSavePersona = () => {
-    router.push("/home/plans/trial");
+  const handleSavePersona = (newPersona: string) => {
+    if (!editPersona) router.push("/home/plans/trial");
+    if (editPersona && handleUpdatePersona) {
+      handleUpdatePersona(newPersona);
+    }
   };
 
   const handleCancelPersona = () => {

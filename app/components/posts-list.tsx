@@ -51,9 +51,11 @@ export default function PostsList({
 
   const onSchedulePost = async (index: number) => {
     setScheduleStates((prev) =>
-      prev.map((state, i) =>
-        i === index ? { ...state, isOpen: false } : state
-      )
+      prev.map((state, i) => {
+        if (i === index) {
+          return { ...state, isOpen: false };
+        } else return state;
+      })
     );
     onUpatePost(index);
   };
@@ -68,9 +70,10 @@ export default function PostsList({
   };
 
   const onUpatePost = async (index?: number) => {
-    const postToUpdate = index
-      ? posts[index]
-      : posts.find((post) => post.id === editingPostId);
+    const postToUpdate =
+      index !== undefined
+        ? posts[index]
+        : posts.find((post) => post.id === editingPostId);
     if (!postToUpdate) throw new Error("Post not found");
     if (editingPostId)
       await handleUpdatePost(
@@ -83,11 +86,12 @@ export default function PostsList({
         },
         editingPostId
       );
-    else if (index)
+    else if (index !== undefined)
       await handleUpdatePost(
         {
           content: postToUpdate.content,
           scheduleDate: scheduleStates[index].selectedDate,
+          isCanceled: false,
         },
         posts[index].id
       );
@@ -227,7 +231,7 @@ export default function PostsList({
                   <p className="mb-2">{post.content}</p>
                 )}
               </div>
-              {/* <div className="flex flex-row-reverse">
+              <div className="flex flex-row-reverse">
                 {(!post.scheduleDate || post.isCanceled) && (
                   <SchedulePost
                     buttonName="Schedule"
@@ -237,7 +241,7 @@ export default function PostsList({
                     onSchedulePost={onSchedulePost}
                   />
                 )}
-              </div> */}
+              </div>
             </CardContent>
           </Card>
         ))

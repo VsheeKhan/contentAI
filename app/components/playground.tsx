@@ -530,6 +530,7 @@ export default function Playground() {
             <ProfileSettings
               persona={persona}
               handleSaveProfile={handleSaveProfile}
+              handleUpdatePersona={setPersona}
             />
           )}
         </main>
