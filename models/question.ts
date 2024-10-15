@@ -11,6 +11,7 @@ interface IQuestion extends Document {
   questionType: QuestionType;
   question: string;
   options?: Record<string, any>;  // Storing options as a JSON object
+  example?: string;
   status: questionStatus.active | questionStatus.inactive ;
 }
 
@@ -30,6 +31,9 @@ const questionSchema: Schema<IQuestion> = new Schema(
       required: function (this: IQuestion) {
         return this.questionType !== 'text';
       },
+    },
+    example: {
+      type: String,
     },
     status: {
       type: Number,
