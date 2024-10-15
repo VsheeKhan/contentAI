@@ -129,12 +129,10 @@ export default function ProfileSettings({
   };
 
   const handleRefreshPersona = () => {
-    console.log("Refresh persona");
     setIsRecreatingPersona(true);
   };
 
   const handleCancelRefreshPerson = () => {
-    console.log("Cancel refresh persona");
     setIsRecreatingPersona(false);
   };
 
