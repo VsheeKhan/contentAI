@@ -29,6 +29,7 @@ export async function generatePostHandler(
       const industry = req.body.industry || "";
       const tone = req.body.tone || "";
       const platform = req.body.platform || "";
+      const style = req.body.style || "";
       const noOfPosts = req.body.noOfPosts || 1;
       if (!topic) {
         return res.status(400).json({ message: "Topic is required" });
@@ -39,6 +40,7 @@ export async function generatePostHandler(
         industry,
         tone,
         platform,
+        style,
         noOfPosts
       );
       const cleanedData = rawData.replace(/^```json\n|\n```$/g, "");
@@ -75,6 +77,7 @@ export async function createPostHandler(
       const industry = req.body.industry || "";
       const tone = req.body.tone || "";
       const platform = req.body.platform || "";
+      const style = req.body.style || "";
       const scheduleDate = req.body.scheduleDate || null;
       if (!topic || !generatedPost) {
         return res
@@ -87,6 +90,7 @@ export async function createPostHandler(
         industry,
         tone,
         platform,
+        style,
         scheduleDate,
         generatedPost
       );
