@@ -4,6 +4,7 @@ interface QuestionInput {
   questionType: QuestionType;
   question: string;
   options?: Record<string, any>;  // JSON object for options
+  example?: string;
   status: questionStatus.active | questionStatus.inactive;
 }
 
