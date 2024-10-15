@@ -1,13 +1,14 @@
 import Post, {IPost} from '../models/post';
 
 // Create a new post
-export async function createPost(userId: string, topic: string, industry: string, tone: string, platform: string, scheduleDate: Date, content: string) {
+export async function createPost(userId: string, topic: string, industry: string, tone: string, platform: string, style: string, scheduleDate: Date, content: string) {
   const newPost = new Post({
     userId,
     topic,
     industry,
     tone,
     platform,
+    style,
     scheduleDate,
     content,
   });

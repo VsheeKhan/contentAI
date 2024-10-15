@@ -46,14 +46,36 @@ export async function generateDigitalPersona(queryPrompt: any[]) {
   }
 }
 
-export async function generatePost(userId:string, topic: string, industry: string, tone: string, platform: string, noOfPosts: number) {
+export async function generatePost(userId:string, topic: string, industry: string, tone: string, platform: string, style: string, noOfPosts: number) {
 	try {
 	  const persona:any = await DigitalPersona.findOne({ userId });
 	  let userQuery: string;
 	  if(industry != "" && tone != "" && platform != ""){
-		userQuery = `Create ${noOfPosts} in ${tone} social media post about ${topic} for the ${industry} industry, tailored for ${platform}. Ensure the content is engaging, emojis, and follows best practices for the platform.The content should not include any bold headings or start with ** and must utilize all the tokens. Return data in json array of objects. Objects will be the posts.`
+		  userQuery = `Generate ${noOfPosts} social media posts on the topic of ${topic} for the ${industry} industry. The tone of the posts should be ${tone}, specifically tailored for ${platform}. Each post must follow a ${style} writing style, with the word count appropriately adjusted to fit the platform's typical norms and best practices.
+		  For Facebook: Craft engaging posts with a medium word count, designed to encourage interaction and discussion.
+		  For Instagram: Keep the content concise, visually-driven, and impactful, with an emphasis on short, catchy phrases and attention-grabbing text.
+		  For LinkedIn: Write professional, informative posts that offer detailed insights and establish thought leadership within the ${industry} field.
+		  For Twitter: Create short, sharp, and impactful posts within the character limit, delivering concise, essential information.
+		  Ensure the posts resonate with the target audience, are engaging, and leverage the best practices for ${platform}. Add relevant emojis where appropriate to boost engagement, while keeping the language natural and platform-friendly. Avoid using bold headings or starting any post with "**".
+		  The content should make full use of the available tokens and be returned in a JSON array of objects, with each object representing a separate post. Example format:
+		  [
+		  	{"post": "Generated post content here..."},
+			{"post": "Generated post content here..."},
+		  ] 
+		  `;
 	  }else{
-		userQuery = `Create ${noOfPosts} post about ${topic}. Ensure the content is engaging, emojis, and follows best practices for the platform.The content should not include any bold headings or start with ** and must utilize all the tokens. Return data in json array of objects. Objects will be the posts.`
+		  userQuery = `Generate ${noOfPosts} social media posts on the topic of ${topic}. If no industry is provided, assume a general business context. The tone of the posts should default to informative, unless otherwise specified by the user. Each post should be written with a balanced style, adapting to whichever platform it fits best.If the user does not specify a platform, distribute posts across these platforms:
+			Facebook: Write engaging posts with a medium word count, suited for interaction and discussion.
+			Instagram: Keep the content concise and visually appealing, with an emphasis on catchy, attention-grabbing text.
+			LinkedIn: Use a professional and informative tone, offering insights that would resonate with a general business audience.
+			Twitter: Create short, impactful posts that deliver essential information within the character limit.
+		  Ensure the posts are engaging, add relevant emojis where appropriate, and follow the best practices for each platform. The content should not include any bold headings or start with "**". All tokens should be fully utilized.
+		  Return the posts in a JSON array of objects, where each object represents one post. Example format:
+		  [
+		  	{"post": "Generated post content here..."},
+			{"post": "Generated post content here..."},
+		  ]
+		`
 	  }
 	  const response = await openai.chat.completions.create({
 		model: 'gpt-4o-mini',
