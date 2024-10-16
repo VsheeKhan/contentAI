@@ -188,7 +188,15 @@ export default function PostsList({
               </div>
               <div className="bg-white rounded-lg shadow p-4 mb-4">
                 <div className="flex items-center mb-2">
-                  <span className="w-12 h-12 bg-pink-500 rounded-full mr-4">
+                  <span
+                    className={`w-12 h-12 rounded-full mr-4
+                      //  flex items-center justify-center overflow-hidden 
+                       ${
+                         !user?.profileImage || user.profileImage.length === 0
+                           ? "bg-pink-500"
+                           : ""
+                       }`}
+                  >
                     {user?.profileImage && user.profileImage.length > 0 ? (
                       <Image
                         src={user.profileImage}

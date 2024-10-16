@@ -28,7 +28,7 @@ export type Post = {
   topic: string;
   industry: string;
   tone: string;
-  platform: string;
+  platform: "Facebook" | "Twitter" | "LinkedIn" | "Instagram";
   createdAt: string;
   scheduleDate?: string;
   isCanceled?: boolean;

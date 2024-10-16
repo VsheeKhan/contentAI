@@ -18,6 +18,7 @@ interface Question {
   question: string;
   type: QuestionType;
   options?: string[];
+  example?: string;
 }
 
 interface SurveyResult {
@@ -62,6 +63,7 @@ export default function PersonaSurvey({
         question: question.question,
         type: question.questionType,
         options: question.options ? Object.values(question.options) : undefined,
+        example: question.example || undefined,
       }));
       setQuestions([...questions, ...questionsToAdd]);
       setSurveyResults(data.map(({ question }) => ({ question, answer: "" })));
@@ -240,6 +242,7 @@ export default function PersonaSurvey({
               value={answer}
               onChange={handleInputChange}
             />
+            {currentQuestion.example && <p>{currentQuestion.example}</p>}
           </div>
         );
       case "radio":
