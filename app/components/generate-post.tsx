@@ -55,7 +55,9 @@ export default function GeneratePost({
   const [noOfPosts, setNoOfPosts] = useState(1);
   const [isGeneratingTopics, setIsGeneratingTopics] = useState(false);
   const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-  const [generatedPosts, setGeneratedPosts] = useState<{ post: string }[]>([]);
+  const [generatedPosts, setGeneratedPosts] = useState<
+    { post: string; platform: Platform }[]
+  >([]);
   const [scheduleStates, setScheduleStates] = useState<
     {
       isOpen: boolean;
@@ -68,7 +70,7 @@ export default function GeneratePost({
   const { user } = useAuth();
 
   useEffect(() => {
-    if (generatedPosts.length > 0) {
+    if (generatedPosts && generatedPosts.length > 0) {
       const newStates = generatedPosts.map(() => ({
         isOpen: false,
         selectedDate: new Date(),
@@ -129,7 +131,9 @@ export default function GeneratePost({
       style: selectedStyle,
       noOfPosts,
     });
-    setGeneratedPosts(posts);
+    setGeneratedPosts(
+      posts.map((post) => ({ post: post.post, platform: selectedPlatform }))
+    );
     setIsGeneratingPost(false);
   };
 
@@ -333,10 +337,10 @@ export default function GeneratePost({
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                    {getPlatformIcon(selectedPlatform)}
+                    {getPlatformIcon(generatedPost.platform)}
                   </div>
                   <span className="font-semibold">
-                    AI Generated ({selectedPlatform})
+                    AI Generated ({generatedPost.platform})
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">

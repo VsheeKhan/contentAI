@@ -18,6 +18,7 @@ import GeneratePost from "./generate-post";
 import PostsList from "./posts-list";
 import { toast } from "@/hooks/use-toast";
 import ContentCalendar from "./content-calendar";
+import { useRouter } from "next/navigation";
 
 type TabTypes = "generate" | "posts" | "settings" | "calendar";
 
@@ -43,6 +44,8 @@ export default function Playground() {
   const [activeTab, setActiveTab] = useState<TabTypes>("generate");
 
   const { user, logout, updateUserProfileImage, updateUserToken } = useAuth();
+
+  const router = useRouter();
 
   useEffect(() => {
     if (posts.length === 0) fetchPosts();
@@ -504,7 +507,18 @@ export default function Playground() {
               ? "Calendar"
               : "Settings"}
           </h1>
-          <div className="flex items-center space-x-4"></div>
+          <div className="flex items-center space-x-4">
+            <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Free Trial
+            </div>
+            <Button
+              variant="default"
+              className="bg-pink-500 hover:bg-pink-600"
+              onClick={() => router.push("/home/plans/pricing")}
+            >
+              Upgrade to Pro
+            </Button>
+          </div>
         </header>
         <main className="p-6 space-y-8">
           {activeTab === "generate" && (

@@ -85,7 +85,7 @@ export default function QuestionManagement() {
       setQuestions([...questions, ...questionsToAdd]);
     } catch (err) {
       setError(
-        "An error occurred while fetching questions. Please try again later."
+        `An error occurred while fetching questions. ${err} Please try again later.`
       );
       console.error("Error fetching questions:", err);
     } finally {
@@ -451,6 +451,8 @@ export default function QuestionManagement() {
                   />
                 ) : question.options ? (
                   question.options.join(", ")
+                ) : question.example ? (
+                  question.example
                 ) : (
                   "-"
                 )}

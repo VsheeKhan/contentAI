@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "../utils/authFetch";
 import { PersonaPreview } from "./persona-preview";
+import { Textarea } from "@/components/ui/textarea";
 
 type QuestionType = "text" | "textarea" | "radio" | "single_choice" | "mcq";
 
@@ -237,12 +238,14 @@ export default function PersonaSurvey({
             <Label htmlFor={`question-${currentQuestionNumber}`}>
               {currentQuestion.question}
             </Label>
-            <Input
+            <Textarea
               id={`question-${currentQuestionNumber}`}
               value={answer}
               onChange={handleInputChange}
             />
-            {currentQuestion.example && <p>{currentQuestion.example}</p>}
+            {currentQuestion.example && (
+              <p>Example: {currentQuestion.example}</p>
+            )}
           </div>
         );
       case "radio":
