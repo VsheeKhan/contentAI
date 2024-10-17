@@ -1,5 +1,6 @@
-import { loadStripe } from '@stripe/stripe-js';
-import { useState } from 'react';
+import { loadStripe } from "@stripe/stripe-js";
+import { useState } from "react";
+import { Button } from "./button";
 
 const stripePromise = loadStripe(process.env.PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -7,12 +8,11 @@ export default function CheckoutButton({ priceId }: { priceId: string }) {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
-      setLoading(true);
-      console.log("Price Id : ", priceId);
-    const res = await fetch('/api/create-checkout-session', {
-      method: 'POST',
+    setLoading(true);
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ priceId }),
     });
@@ -24,8 +24,12 @@ export default function CheckoutButton({ priceId }: { priceId: string }) {
   };
 
   return (
-    <button onClick={handleClick} disabled={loading}>
-      {loading ? 'Loading...' : 'Subscribe'}
-    </button>
+    <Button
+      onClick={handleClick}
+      disabled={loading}
+      className="w-full text-lg py-6"
+    >
+      {loading ? "Loading..." : "Start Plan"}
+    </Button>
   );
 }
