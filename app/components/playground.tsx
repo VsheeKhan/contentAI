@@ -43,17 +43,36 @@ export default function Playground() {
   const [topics, setTopics] = useState<string[]>([]);
   const [persona, setPersona] = useState("");
   const [activeTab, setActiveTab] = useState<TabTypes>("generate");
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
+    null
+  );
 
   const { user, logout, updateUserProfileImage, updateUserToken } = useAuth();
-
-  const router = useRouter();
 
   useEffect(() => {
     if (posts.length === 0) fetchPosts();
     if (topics.length === 0) fetchTopics();
     if (persona.length === 0) fetchPersona();
+    getSubscriptionStatus();
   }, []);
 
+  const getSubscriptionStatus = async () => {
+    try {
+      const response = await authFetch("/api/subscription-status");
+      if (!response.ok) {
+        throw new Error("Failed to fetch subscription status");
+      }
+      const data = await response.json();
+      setSubscriptionStatus(data.status);
+    } catch (err) {
+      console.error("Error fetching subscription status", err);
+      toast({
+        title: "Error",
+        description: "Failed to fetch subscription status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   const fetchTopics = async () => {
     try {
       const response = await authFetch("/api/get-custom-topics");
@@ -505,15 +524,19 @@ export default function Playground() {
           </h1>
           <div className="flex items-center space-x-4">
             <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-              Free Trial
+              {subscriptionStatus === "active"
+                ? "Upgraded to Pro"
+                : "Free Trial"}
             </div>
-            <Button
-              variant="default"
-              className="bg-pink-500 hover:bg-pink-600"
-              onClick={() => setActiveTab("subscribe")}
-            >
-              Upgrade to Pro
-            </Button>
+            {subscriptionStatus !== "active" ? (
+              <Button
+                variant="default"
+                className="bg-pink-500 hover:bg-pink-600"
+                onClick={() => setActiveTab("subscribe")}
+              >
+                Upgrade to Pro
+              </Button>
+            ) : null}
           </div>
         </header>
         <main className="p-6 space-y-8">
