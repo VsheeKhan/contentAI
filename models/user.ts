@@ -4,6 +4,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 interface IUser extends Document {
   name: string;
   email: string;
+  stripeClientId: string;
   password: string;
   userType?: number;
   profileImage?: string;
@@ -24,6 +25,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+    },
+    stripeClientId: {
+      type: String,
+      required: true,
+      default: ""
     },
     password: {
       type: String,
