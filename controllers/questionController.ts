@@ -8,7 +8,11 @@ export async function createQuestionHandler(req: NextApiRequest, res: NextApiRes
   if (req.method === 'POST') {
     try {
       const { questionType, question, options, status } = req.body;
-      const newQuestion = await createQuestion({ questionType, question, options, status });
+      const example = req.body.example || "";
+      if (questionType === "text" && example === "") {
+        return res.status(400).json({ message: "Example required for question type 'input'" });
+      }
+      const newQuestion = await createQuestion({ questionType, question, options, example, status });
 
       res.status(201).json(newQuestion);
     } catch (error) {
@@ -65,9 +69,12 @@ export async function updateQuestionHandler(req: NextApiRequest, res: NextApiRes
   if (req.method === 'PUT') {
     const { id } = req.query;
     const { questionType, question, options, status } = req.body;
-
+    const example = req.body.example || "";
+      if (questionType === "text" && example === "") {
+        return res.status(400).json({ message: "Example required for question type 'input'" });
+      }
     try {
-      const updatedQuestion = await updateQuestion(id as string, { questionType, question, options, status });
+      const updatedQuestion = await updateQuestion(id as string, { questionType, question, options, example, status });
 
       if (!updatedQuestion) {
         return res.status(404).json({ message: 'Question not found' });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,32 +39,7 @@ type User = {
 };
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<Array<User>>([
-    // {
-    //   id: 1,
-    //   name: "John Doe",
-    //   email: "john@example.com",
-    //   role: "user",
-    //   plan: "pro",
-    //   activity: "active",
-    // },
-    // {
-    //   id: 2,
-    //   name: "Jane Smith",
-    //   email: "jane@example.com",
-    //   role: "admin",
-    //   plan: "enterprise",
-    //   activity: "inactive",
-    // },
-    // {
-    //   id: 3,
-    //   name: "Bob Johnson",
-    //   email: "bob@example.com",
-    //   role: "user",
-    //   plan: "basic",
-    //   activity: "active",
-    // },
-  ]);
+  const [users, setUsers] = useState<Array<User>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,14 +112,11 @@ export default function UserManagement() {
       }
 
       const updatedUser = await response.json();
-      setUsers(
-        users.map((user) =>
-          user.id === updatedUser._id
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === editingUser.id
             ? {
-                ...user,
-                plan: updatedUser.newPlan,
-                role: updatedUser.newRole,
-                status: updatedUser.newStatus,
+                ...editingUser,
               }
             : user
         )
@@ -182,8 +154,8 @@ export default function UserManagement() {
         throw new Error(`Failed to grant free access to user ${user.name}`);
       }
       const updatedSubscription = await response.json();
-      setUsers(
-        users.map((userItem) =>
+      setUsers((prevUsers) =>
+        prevUsers.map((userItem) =>
           user.id === userItem.id ? { ...userItem, freeAccess: true } : userItem
         )
       );
@@ -195,12 +167,14 @@ export default function UserManagement() {
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterPlan === "all" || user.plan === filterPlan) &&
-      (filterStatus === "all" || user.status === filterStatus)
-  );
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (filterPlan === "all" || user.plan === filterPlan) &&
+        (filterStatus === "all" || user.status === filterStatus)
+    );
+  }, [users, searchTerm, filterPlan, filterStatus]);
 
   if (isLoading) {
     return (
@@ -218,18 +192,18 @@ export default function UserManagement() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="flex space-x-2">
+      <div className="flex w-full space-x-2">
         <Input
           placeholder="Search users..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm flex-1"
         />
         <Select
           value={filterPlan}
           onValueChange={(value: PlanFilters) => setFilterPlan(value)}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="flex-1">
             <SelectValue placeholder="Filter by plan" />
           </SelectTrigger>
           <SelectContent>
@@ -242,7 +216,7 @@ export default function UserManagement() {
           value={filterStatus}
           onValueChange={(value: StatusFilter) => setFilterStatus(value)}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="flex-1">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -378,4 +352,7 @@ export default function UserManagement() {
       </Table>
     </div>
   );
+}
+function useMeno(arg0: () => User[], arg1: (string | User[])[]) {
+  throw new Error("Function not implemented.");
 }

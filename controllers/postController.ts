@@ -1,8 +1,14 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { generatePost, generatePostTopics } from '../services/openAIService';
-import { createPost, getAllPostsByUserId, updatePost, deletePost } from '../services/postService';
-import { storeCustomTopics, getCustomTopics } from '../services/topicService';
-import connectToDatabase from '../lib/mongodb';
+import { NextApiRequest, NextApiResponse } from "next";
+import { generatePost, generatePostTopics } from "../services/openAIService";
+import {
+  createPost,
+  getAllPostsByUserId,
+  updatePost,
+  deletePost,
+  cancelPostSchedule,
+} from "../services/postService";
+import { storeCustomTopics, getCustomTopics } from "../services/topicService";
+import connectToDatabase from "../lib/mongodb";
 
 // Handler to generate digital persona
 export async function generatePostHandler(
@@ -23,18 +29,28 @@ export async function generatePostHandler(
       const industry = req.body.industry || "";
       const tone = req.body.tone || "";
       const platform = req.body.platform || "";
+      const style = req.body.style || "";
+      const noOfPosts = req.body.noOfPosts || 1;
       if (!topic) {
-        return res.status(400).json({ message: "topic is required" });
+        return res.status(400).json({ message: "Topic is required" });
       }
-      const post = await generatePost(userId, topic, industry, tone, platform);
-      res.status(200).json({ post });
+      const rawData: any = await generatePost(
+        userId,
+        topic,
+        industry,
+        tone,
+        platform,
+        style,
+        noOfPosts
+      );
+      const cleanedData = rawData.replace(/^```json\n|\n```$/g, "");
+      const posts = JSON.parse(cleanedData);
+      res.status(200).json({ posts });
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["POST"]);
@@ -61,7 +77,8 @@ export async function createPostHandler(
       const industry = req.body.industry || "";
       const tone = req.body.tone || "";
       const platform = req.body.platform || "";
-
+      const style = req.body.style || "";
+      const scheduleDate = req.body.scheduleDate || null;
       if (!topic || !generatedPost) {
         return res
           .status(400)
@@ -73,16 +90,16 @@ export async function createPostHandler(
         industry,
         tone,
         platform,
+        style,
+        scheduleDate,
         generatedPost
       );
       res.status(201).json(post);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["POST"]);
@@ -110,12 +127,10 @@ export async function getPostsHandler(
 
       res.status(200).json(posts);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["GET"]);
@@ -138,12 +153,10 @@ export async function updatePostHandler(
 
       res.status(200).json(post);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["PUT"]);
@@ -165,12 +178,10 @@ export async function deletePostHandler(
 
       res.status(200).json({ message: "Post deleted successfully", post });
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
     res.setHeader("Allow", ["DELETE"]);
@@ -178,53 +189,91 @@ export async function deletePostHandler(
   }
 }
 
-export async function generatePostTopicsHandler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
+export async function cancelPostScheduleHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "POST") {
     try {
       await connectToDatabase();
 
-      const { userId } = req.user as { userId: string };
-  
-      if (!userId) {
-        return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
-      }
-      const response: any = await generatePostTopics(userId);
-      
-      const topics = extractTopicsFromResponse(response);
-      await storeCustomTopics(userId, topics);
-      res.status(200).json({ topics });
-    } catch (error) {
+      const { postId } = req.body;
+
+      const post = await cancelPostSchedule(postId as string);
+
       res
-        .status(500)
-        .json({
-          message: "Internal Server Error",
-          error: (error as Error).message,
-        });
+        .status(200)
+        .json({ message: "Post schedule canceled successfully", post });
+    } catch (error) {
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
-    res.setHeader('Allow', ['GET']);
+    res.setHeader("Allow", ["DELETE"]);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }
 
-export async function getPostTopicsHandler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
+export async function generatePostTopicsHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
     try {
       await connectToDatabase();
 
       const { userId } = req.user as { userId: string };
-  
+
       if (!userId) {
-        return res.status(401).json({ message: 'Unauthorized, no userId found in token' });
+        return res
+          .status(401)
+          .json({ message: "Unauthorized, no userId found in token" });
       }
-      const topics: any = await getCustomTopics(userId);
-      
+      const response: any = await generatePostTopics(userId);
+
+      const topics = extractTopicsFromResponse(response);
+      await storeCustomTopics(userId, topics);
       res.status(200).json({ topics });
     } catch (error) {
-      res.status(500).json({ message: 'Internal Server Error', error: (error as Error).message });
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
     }
   } else {
-    res.setHeader('Allow', ['GET']);
+    res.setHeader("Allow", ["GET"]);
+    res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function getPostTopicsHandler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
+    try {
+      await connectToDatabase();
+
+      const { userId } = req.user as { userId: string };
+
+      if (!userId) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized, no userId found in token" });
+      }
+      const topics: any = await getCustomTopics(userId);
+
+      res.status(200).json({ topics });
+    } catch (error) {
+      res.status(500).json({
+        message: "Internal Server Error",
+        error: (error as Error).message,
+      });
+    }
+  } else {
+    res.setHeader("Allow", ["GET"]);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
   }
 }
