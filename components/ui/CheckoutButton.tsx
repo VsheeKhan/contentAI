@@ -1,3 +1,4 @@
+import { authFetch } from '@/app/utils/authFetch';
 import { loadStripe } from '@stripe/stripe-js';
 import { useState } from 'react';
 
@@ -9,7 +10,7 @@ export default function CheckoutButton({ priceId }: { priceId: string }) {
   const handleClick = async () => {
       setLoading(true);
       console.log("Price Id : ", priceId);
-    const res = await fetch('/api/create-checkout-session', {
+    const res = await authFetch('/api/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

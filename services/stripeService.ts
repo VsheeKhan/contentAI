@@ -1,4 +1,5 @@
 import Subscription from "../models/subscription";
+import { findUserById } from "./userService";
 import Stripe from 'stripe';
 import connectToDatabase from '../lib/mongodb';
 
@@ -22,4 +23,11 @@ export async function cancelSubscription(userId: string) {
   } else {
     return { message: "Error! Please try again later." };
   }
+}
+
+export async function subscriptionStatus(userId: string) {
+  await connectToDatabase();
+  const subscription: any = await Subscription.findOne({ userId });
+  const subscriptionStatus = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+  return {"status": subscriptionStatus.status};
 }
