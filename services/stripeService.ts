@@ -1,4 +1,4 @@
-import Subscription from "../models/subscription";
+import Subscription, {subscriptionStatus} from "../models/subscription";
 import Stripe from 'stripe';
 import connectToDatabase from '../lib/mongodb';
 
@@ -12,14 +12,20 @@ export async function cancelSubscription(userId: string) {
   const subscription: any = await Subscription.findOne({ userId });
   const cancelSub = await stripe.subscriptions.cancel(`${subscription.stripeSubscriptionId}`);
   if (cancelSub.status === "canceled") {
-    console.log("Cancel Subscription : ", cancelSub);
     const cancelDateTime = new Date();
     await Subscription.findByIdAndUpdate(subscription._id, {
-      status: 3,
+      status: subscriptionStatus.canceled,
       canceledAt: cancelDateTime,
     });
     return { message: "Success! Your subscription has been canceled." };
   } else {
     return { message: "Error! Please try again later." };
   }
+}
+
+export async function subscription_Status(userId: string) {
+  await connectToDatabase();
+  const subscription: any = await Subscription.findOne({ userId });
+  const subStatus = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+  return {"status": subStatus.status};
 }

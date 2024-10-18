@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const customerEmail = subscription.customer_email;
       const subscriptionId = subscription.subscription;
       const userInfo:any = await User.findOne({ email: customerEmail });
-      const planInfo:any = await Plan.findOne({ name: "professional" });
+      const planInfo:any = await Plan.findOne({ name: process.env.PLAN_NAME });
       const subscriptionInfo:any = await Subscription.findOne({ userId: userInfo._id });
       const subscriptionEndDate:any = subscriptionInfo?.endDateTime;
       const newSubscriptionEndDate = addDays(subscriptionEndDate, parseInt(planInfo.duration));

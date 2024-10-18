@@ -3,6 +3,11 @@ import Subscription from "../models/subscription";
 import Plan from "../models/plan";
 import { differenceInDays, subMonths, startOfMonth } from "date-fns";
 import bcrypt from "bcryptjs";
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-09-30.acacia',
+});
 
 interface UserInput {
   name: string;
@@ -14,15 +19,26 @@ export async function findUserByEmail(email: string) {
   return await User.findOne({ email });
 }
 
+export async function findUserById(userId: string) {
+  return await User.findOne({ _id: userId });
+}
+
+export async function createStripeClient(email:string) { 
+  const stripeClient = await stripe.customers.create({
+    email,
+  });
+  return stripeClient;
+};
+
 export async function createUser({ name, email, password }: UserInput) {
-  // Hash the password
+  const stripeRegister = await createStripeClient(email);
+  console.log(stripeRegister);
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-
-  // Create and save the new user
   const newUser = new User({
     name,
     email,
+    stripeClientId: stripeRegister.id,
     password: hashedPassword,
   });
 

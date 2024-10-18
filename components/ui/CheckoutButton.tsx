@@ -1,6 +1,7 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { useState } from "react";
 import { Button } from "./button";
+import { authFetch } from "@/app/utils/authFetch";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = loadStripe(stripePublishableKey || "");
@@ -10,7 +11,7 @@ export default function CheckoutButton({ priceId }: { priceId: string }) {
 
   const handleClick = async () => {
     setLoading(true);
-    const res = await fetch("/api/create-checkout-session", {
+    const res = await authFetch("/api/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
