@@ -2,7 +2,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useState } from "react";
 import { Button } from "./button";
 
-const stripePromise = loadStripe(process.env.PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = loadStripe(stripePublishableKey || "");
 
 export default function CheckoutButton({ priceId }: { priceId: string }) {
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,7 @@ export default function CheckoutButton({ priceId }: { priceId: string }) {
       disabled={loading}
       className="w-full text-lg py-6"
     >
-      {loading ? "Loading..." : "Start Plan"}
+      {loading ? "Loading..." : "Subscribe"}
     </Button>
   );
 }

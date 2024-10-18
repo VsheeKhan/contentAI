@@ -278,9 +278,10 @@ export default function ContentCalendar({
       <Dialog open={isContentViewerOpen} onOpenChange={setIsContentViewerOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Scheduled Post</DialogTitle>
+            <DialogTitle>Scheduled Post </DialogTitle>
           </DialogHeader>
           <div className="py-4">
+            <p className="min-h-[200px]">{selectedPost?.content || ""}</p>
             <div className="flex flex-col mb-2 p-2 pl-0 rounded">
               {selectedPost && getPlatformIcon(selectedPost.platform)}
               <p className="text-sm text-gray-500 mb-2">
@@ -300,7 +301,6 @@ export default function ContentCalendar({
                   )}`}
               </p>
             </div>
-            <p className="min-h-[200px]">{selectedPost?.content || ""}</p>
           </div>
           <DialogFooter className="sm:justify-between">
             <SchedulePost

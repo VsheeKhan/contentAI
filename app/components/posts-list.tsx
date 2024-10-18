@@ -205,14 +205,7 @@ export default function PostsList({
                         height={300}
                         className="w-full h-full object-cover"
                       />
-                    ) : (
-                      <Image
-                        src={"/uploads/person.png"}
-                        alt="Profile"
-                        width={500}
-                        height={300}
-                      />
-                    )}
+                    ) : null}
                   </span>
                   <div>
                     <div className="flex space-x-2 items-center">

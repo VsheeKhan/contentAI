@@ -25,7 +25,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Image from "next/image";
 import { useAuth } from "../contexts/auth-context";
 import SchedulePost from "./schedule-post";
 
@@ -45,7 +44,6 @@ export default function GeneratePost({
   handleGenerateTopics,
   handleGeneratePost,
 }: GeneratePostProps) {
-  const [error, setError] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("");
   const [selectedTone, setSelectedTone] = useState("");
@@ -123,18 +121,23 @@ export default function GeneratePost({
 
   const onGeneratePost = async () => {
     setIsGeneratingPost(true);
-    const posts = await handleGeneratePost({
-      topic: selectedTopic,
-      industry: selectedIndustry,
-      tone: selectedTone,
-      platform: selectedPlatform,
-      style: selectedStyle,
-      noOfPosts,
-    });
-    setGeneratedPosts(
-      posts.map((post) => ({ post: post.post, platform: selectedPlatform }))
-    );
-    setIsGeneratingPost(false);
+    try {
+      const posts = await handleGeneratePost({
+        topic: selectedTopic,
+        industry: selectedIndustry,
+        tone: selectedTone,
+        platform: selectedPlatform,
+        style: selectedStyle,
+        noOfPosts,
+      });
+      setGeneratedPosts(
+        posts.map((post) => ({ post: post.post, platform: selectedPlatform }))
+      );
+      setIsGeneratingPost(false);
+    } catch (err) {
+      setIsGeneratingPost(false);
+      console.error("Error generating post: ", err);
+    }
   };
 
   const PlatformStyleSelector = () => (
@@ -198,15 +201,6 @@ export default function GeneratePost({
         return <Instagram className="h-4 w-4" />;
     }
   };
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-red-500 mb-4">{error}</p>
-        <Button onClick={() => setError(null)}>Dismiss</Button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -296,7 +290,7 @@ export default function GeneratePost({
                   htmlFor="topicType"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Topic Type
+                  Topic
                 </label>
                 <Input
                   id="topicType"
@@ -325,7 +319,7 @@ export default function GeneratePost({
             {isGeneratingPost && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Generate Post
+            {isGeneratingPost ? "Generating" : "Generate Post"}
           </Button>
         </CardContent>
       </Card>

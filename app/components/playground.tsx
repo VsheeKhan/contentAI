@@ -19,8 +19,9 @@ import PostsList from "./posts-list";
 import { toast } from "@/hooks/use-toast";
 import ContentCalendar from "./content-calendar";
 import { useRouter } from "next/navigation";
+import PricingPlan from "./pricing-plan";
 
-type TabTypes = "generate" | "posts" | "settings" | "calendar";
+type TabTypes = "generate" | "posts" | "settings" | "calendar" | "subscribe";
 
 export type Post = {
   id: string;
@@ -178,7 +179,7 @@ export default function Playground() {
       setPosts(
         data.map(
           ({
-            _id,
+            id: _id,
             userId,
             content,
             topic,
@@ -441,14 +442,7 @@ export default function Playground() {
                   height={300}
                   className="w-full h-full object-cover"
                 />
-              ) : (
-                <Image
-                  src={"/uploads/person.png"}
-                  alt="Profile"
-                  width={500}
-                  height={300}
-                />
-              )}
+              ) : null}
             </span>
             {user?.name}
           </h2>
@@ -497,7 +491,7 @@ export default function Playground() {
       </div>
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center">
+        <header className="bg-white shadow-sm p-4 pb-3 flex justify-between items-center">
           <h1 className="text-2xl font-semibold">
             {activeTab === "generate"
               ? "Generate Post"
@@ -505,7 +499,9 @@ export default function Playground() {
               ? "Posts"
               : activeTab === "calendar"
               ? "Calendar"
-              : "Settings"}
+              : activeTab === "settings"
+              ? "Settings"
+              : "Subscribe"}
           </h1>
           <div className="flex items-center space-x-4">
             <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -514,7 +510,7 @@ export default function Playground() {
             <Button
               variant="default"
               className="bg-pink-500 hover:bg-pink-600"
-              onClick={() => router.push("/home/plans/pricing")}
+              onClick={() => setActiveTab("subscribe")}
             >
               Upgrade to Pro
             </Button>
@@ -551,6 +547,13 @@ export default function Playground() {
               persona={persona}
               handleSaveProfile={handleSaveProfile}
               handleUpdatePersona={setPersona}
+            />
+          )}
+
+          {activeTab === "subscribe" && (
+            <PricingPlan
+              parent={true}
+              handleCancel={() => setActiveTab("generate")}
             />
           )}
         </main>
