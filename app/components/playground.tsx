@@ -23,8 +23,7 @@ import PricingPlan from "./pricing-plan";
 
 type TabTypes = "generate" | "posts" | "settings" | "calendar" | "subscribe";
 
-export type Post = {
-  id: string;
+type PostObj = {
   userId: string;
   content: string;
   topic: string;
@@ -36,6 +35,13 @@ export type Post = {
   isCanceled?: boolean;
 };
 
+export type Post = PostObj & {
+  id: string;
+};
+
+export type ApiResponsePost = PostObj & {
+  _id: string;
+};
 export default function Playground() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +163,7 @@ export default function Playground() {
         scheduleDate,
         isCanceled,
       } = await response.json();
+
       setPosts((prevPosts) => [
         ...prevPosts,
         {
@@ -198,7 +205,7 @@ export default function Playground() {
       setPosts(
         data.map(
           ({
-            id: _id,
+            _id,
             userId,
             content,
             topic,
@@ -208,7 +215,7 @@ export default function Playground() {
             createdAt,
             scheduleDate,
             isCanceled,
-          }: Post) => ({
+          }: ApiResponsePost) => ({
             id: _id,
             userId,
             content,
@@ -422,7 +429,8 @@ export default function Playground() {
       return { status: "failure", data: err };
     }
   };
-
+  useEffect(() => {
+  }, [posts]);
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
