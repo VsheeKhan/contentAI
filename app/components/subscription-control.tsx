@@ -46,7 +46,7 @@ export default function SubscriptionControl() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authFetch("/api/users-by-plan?plan=pro");
+      const response = await authFetch("/api/users-by-plan?plan=professional");
       if (!response.ok) {
         throw new Error("Failed to fetch all users by plan");
       }
@@ -131,7 +131,7 @@ export default function SubscriptionControl() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="trial">Trial</SelectItem>
-                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button

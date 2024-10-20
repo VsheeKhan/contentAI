@@ -24,7 +24,7 @@ import { authFetch } from "../utils/authFetch";
 
 type Status = "active" | "inactive";
 type Role = "admin" | "user";
-type Plan = "trial" | "pro";
+type Plan = "trial" | "professional";
 type PlanFilters = "all" | Plan;
 type StatusFilter = "all" | Status;
 type User = {
@@ -217,7 +217,7 @@ export default function UserManagement() {
           <SelectContent>
             <SelectItem value="all">All plans</SelectItem>
             <SelectItem value="trial">Trial</SelectItem>
-            <SelectItem value="pro">Pro</SelectItem>
+            <SelectItem value="professional">Professional</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -287,7 +287,7 @@ export default function UserManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="trial">Trial</SelectItem>
-                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (

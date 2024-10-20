@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const subscriptionInfo:any = await Subscription.findOne({ userId: userInfo._id });
       const subscriptionEndDate:any = subscriptionInfo?.endDateTime;
       const newSubscriptionEndDate = addDays(subscriptionEndDate, parseInt(planInfo.duration));
-      await Subscription.updateOne({ _id: subscriptionInfo._id }, {stripeSubscriptionId: subscriptionId, endDateTime: newSubscriptionEndDate});
+      await Subscription.updateOne({ _id: subscriptionInfo._id }, {planId: planInfo._id, stripeSubscriptionId: subscriptionId, endDateTime: newSubscriptionEndDate});
       break;
     }
     default:
