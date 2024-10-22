@@ -15,6 +15,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { formatNumber } from "../utils/formattingUtils";
+import { format } from "date-fns";
 
 type SubscriptionData = {
   plan: string;
@@ -57,10 +59,18 @@ export default function AnalyticsOverview() {
   const [userSignUpData, setUserSignUpData] = useState<Array<UserSignUpData>>(
     []
   );
+  const [monthlyAIModelUsage, setMonthlyAIModelUsage] = useState<number>(0);
+  const [
+    monthlyAIModelUsagePercentageChange,
+    setMonthlyAIModelUsagePercentageChange,
+  ] = useState<number>(0);
+  const [dailyAIModelUsage, setDailyAIModelUsage] = useState<any[]>([]);
 
   useEffect(() => {
     fetchUserStats();
     fetchUserSignUpData();
+    fetchAIModelMonthlyUsage();
+    fetchAIModelDailyUsage();
   }, []);
 
   const fetchUserStats = async () => {
@@ -118,15 +128,37 @@ export default function AnalyticsOverview() {
     }
   };
 
-  const aiUsageData = [
-    { day: "Mon", usage: 12 },
-    { day: "Tue", usage: 19 },
-    { day: "Wed", usage: 3 },
-    { day: "Thu", usage: 5 },
-    { day: "Fri", usage: 2 },
-    { day: "Sat", usage: 3 },
-    { day: "Sun", usage: 9 },
-  ];
+  const fetchAIModelMonthlyUsage = async () => {
+    try {
+      const response = await authFetch("/api/tokens/monthly");
+      if (!response.ok) {
+        throw new Error("Failed to fetch AI model usage data");
+      }
+      const data = await response.json();
+      setMonthlyAIModelUsage(data.currentMonthTokens);
+      setMonthlyAIModelUsagePercentageChange(data.percentageChange);
+    } catch (error) {
+      console.error("Error fetching AI model usage data:", error);
+    }
+  };
+
+  const fetchAIModelDailyUsage = async () => {
+    try {
+      const response = await authFetch("/api/tokens/daily?days=7");
+      if (!response.ok) {
+        throw new Error("Failed to fetch AI model daily usage data");
+      }
+      const data = await response.json();
+      setDailyAIModelUsage(
+        data.map((item: any) => ({
+          date: format(item._id, "d MMM"),
+          usage: item.totalTokens,
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching AI model daily usage data:", err);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -162,9 +194,11 @@ export default function AnalyticsOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1.2M</div>
+            <div className="text-2xl font-bold">
+              {formatNumber(monthlyAIModelUsage)}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +32.5% from last month
+              +{monthlyAIModelUsagePercentageChange}% from last month
             </p>
           </CardContent>
         </Card>
@@ -193,7 +227,7 @@ export default function AnalyticsOverview() {
                 <Legend />
                 <Line
                   type="monotone"
-                  dataKey="Count"
+                  dataKey="count"
                   stroke="#8884d8"
                   activeDot={{ r: 8 }}
                 />
@@ -224,9 +258,9 @@ export default function AnalyticsOverview() {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={aiUsageData}>
+              <LineChart data={dailyAIModelUsage}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
+                <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
                 <Legend />

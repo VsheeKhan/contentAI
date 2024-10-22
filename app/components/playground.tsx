@@ -18,8 +18,8 @@ import GeneratePost from "./generate-post";
 import PostsList from "./posts-list";
 import { toast } from "@/hooks/use-toast";
 import ContentCalendar from "./content-calendar";
-import { useRouter } from "next/navigation";
 import PricingPlan from "./pricing-plan";
+import { useRouter } from "next/navigation";
 
 type TabTypes = "generate" | "posts" | "settings" | "calendar" | "subscribe";
 
@@ -54,6 +54,7 @@ export default function Playground() {
   );
 
   const { user, logout, updateUserProfileImage, updateUserToken } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (posts.length === 0) fetchPosts();
@@ -70,13 +71,11 @@ export default function Playground() {
       }
       const data = await response.json();
       setSubscriptionStatus(data.status);
+      if (data.status === "expired") {
+        router.push("/home/plans/pricing");
+      }
     } catch (err) {
       console.error("Error fetching subscription status", err);
-      toast({
-        title: "Error",
-        description: "Failed to fetch subscription status. Please try again.",
-        variant: "destructive",
-      });
     }
   };
   const fetchTopics = async () => {
@@ -429,8 +428,6 @@ export default function Playground() {
       return { status: "failure", data: err };
     }
   };
-  useEffect(() => {
-  }, [posts]);
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">

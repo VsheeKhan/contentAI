@@ -20,6 +20,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
+import { capitalize } from "../utils/formattingUtils";
 
 type Status = "active" | "inactive";
 
@@ -37,16 +38,37 @@ export default function SubscriptionControl() {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [plans, setPlans] = useState<string[]>([]);
 
   useEffect(() => {
     fetchSubscribedUsers();
   }, []);
 
+  const fetchAllPlans = async () => {
+    try {
+      const response = await authFetch("/api/plans");
+      if (!response.ok) {
+        throw new Error("Failed to fetch all plans");
+      }
+      const data = await response.json();
+      const plans = data.map((plan: any) => plan.name);
+      setPlans(plans);
+      return plans;
+    } catch (error) {
+      setError(
+        "An error occurred while fetching all plans. Please try again later."
+      );
+      console.error("Error fetching plans:", error);
+    }
+  };
+
   const fetchSubscribedUsers = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await authFetch("/api/users-by-plan?plan=professional");
+      const plans = await fetchAllPlans();
+      const proPlan = plans.find((plan: any) => plan !== "trial");
+      const response = await authFetch(`/api/users-by-plan?plan=${proPlan}`);
       if (!response.ok) {
         throw new Error("Failed to fetch all users by plan");
       }
@@ -117,8 +139,8 @@ export default function SubscriptionControl() {
             <TableRow key={sub.id}>
               <TableCell>{sub.name}</TableCell>
               <TableCell>{sub.email}</TableCell>
-              <TableCell>{sub.plan}</TableCell>
-              <TableCell>{sub.status}</TableCell>
+              <TableCell>{capitalize(sub.plan)}</TableCell>
+              <TableCell>{capitalize(sub.status)}</TableCell>
               <TableCell>{sub.nextBillingDate.toDateString()}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
@@ -130,8 +152,11 @@ export default function SubscriptionControl() {
                       <SelectValue placeholder="Change plan" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="trial">Trial</SelectItem>
-                      <SelectItem value="professional">Professional</SelectItem>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan} value={plan}>
+                          {capitalize(plan)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Button
