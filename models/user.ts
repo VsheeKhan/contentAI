@@ -7,12 +7,20 @@ interface IUser extends Document {
   stripeClientId: string;
   password: string;
   userType?: number;
+  status: number;
   profileImage?: string;
 }
 
 export enum userType {
   admin = 1,
   user = 2
+}
+
+export enum userStatus {
+  active = 1,
+  inactive = 2,
+  banned = 3,
+  deleted = 4
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -45,6 +53,12 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: String,
       required: false,
       default: ""
+    },
+    status: {
+      type: Number,
+      required: true,
+      enum: userStatus,
+      default: userStatus.active
     }
   },
   {
