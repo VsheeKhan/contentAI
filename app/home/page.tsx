@@ -21,7 +21,7 @@ export default function UserHome() {
   ) : (
     <>
       <LogoutButton className="fixed top-4 right-4 z-50" />
-      <PersonaSurvey />
+      <PersonaSurvey editPersona={false} />
     </>
   );
 }

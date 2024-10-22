@@ -18,7 +18,6 @@ import GeneratePost from "./generate-post";
 import PostsList from "./posts-list";
 import { toast } from "@/hooks/use-toast";
 import ContentCalendar from "./content-calendar";
-import { useRouter } from "next/navigation";
 import PricingPlan from "./pricing-plan";
 
 type TabTypes = "generate" | "posts" | "settings" | "calendar" | "subscribe";
@@ -429,8 +428,6 @@ export default function Playground() {
       return { status: "failure", data: err };
     }
   };
-  useEffect(() => {
-  }, [posts]);
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
