@@ -5,7 +5,7 @@ import { createPrompt, getAllPrompt, updatePrompt } from '../services/promptServ
 const requiredVariables: Record<string, string[]> = {
   "generate-custom-posts": ['noOfPosts', 'topic', 'industry', 'tone', 'platform', 'style'],
   "generate-posts": ['noOfPosts', 'topic', 'platform'],
-  "generate-topics": ['persona.personaData', 'process.env.GENERATE_NO_TOPICS'],
+  "generate-topics": ['digitalPersona', 'noOfTopics'],
 };
 
 function checkVariablesInText(variables: string[], text: string): void {

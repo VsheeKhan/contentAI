@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createSubscriptionHandler } from '../../controllers/subscriptionController';
-import { authenticate } from '../../middlewares/authMiddleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
