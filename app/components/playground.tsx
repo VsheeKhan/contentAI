@@ -18,13 +18,12 @@ import GeneratePost from "./generate-post";
 import PostsList from "./posts-list";
 import { toast } from "@/hooks/use-toast";
 import ContentCalendar from "./content-calendar";
-import { useRouter } from "next/navigation";
 import PricingPlan from "./pricing-plan";
+import { useRouter } from "next/navigation";
 
 type TabTypes = "generate" | "posts" | "settings" | "calendar" | "subscribe";
 
-export type Post = {
-  id: string;
+type PostObj = {
   userId: string;
   content: string;
   topic: string;
@@ -36,6 +35,13 @@ export type Post = {
   isCanceled?: boolean;
 };
 
+export type Post = PostObj & {
+  id: string;
+};
+
+export type ApiResponsePost = PostObj & {
+  _id: string;
+};
 export default function Playground() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +54,7 @@ export default function Playground() {
   );
 
   const { user, logout, updateUserProfileImage, updateUserToken } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (posts.length === 0) fetchPosts();
@@ -64,13 +71,11 @@ export default function Playground() {
       }
       const data = await response.json();
       setSubscriptionStatus(data.status);
+      if (data.status === "expired") {
+        router.push("/home/plans/pricing");
+      }
     } catch (err) {
       console.error("Error fetching subscription status", err);
-      toast({
-        title: "Error",
-        description: "Failed to fetch subscription status. Please try again.",
-        variant: "destructive",
-      });
     }
   };
   const fetchTopics = async () => {
@@ -157,6 +162,7 @@ export default function Playground() {
         scheduleDate,
         isCanceled,
       } = await response.json();
+
       setPosts((prevPosts) => [
         ...prevPosts,
         {
@@ -198,7 +204,7 @@ export default function Playground() {
       setPosts(
         data.map(
           ({
-            id: _id,
+            _id,
             userId,
             content,
             topic,
@@ -208,7 +214,7 @@ export default function Playground() {
             createdAt,
             scheduleDate,
             isCanceled,
-          }: Post) => ({
+          }: ApiResponsePost) => ({
             id: _id,
             userId,
             content,
@@ -422,7 +428,6 @@ export default function Playground() {
       return { status: "failure", data: err };
     }
   };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">

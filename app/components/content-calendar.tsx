@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  addDays,
   addMonths,
   endOfMonth,
+  endOfWeek,
   format,
   isSameDay,
   isSameMonth,
   parseISO,
   startOfMonth,
+  startOfWeek,
   subMonths,
 } from "date-fns";
 import {
@@ -95,9 +98,9 @@ export default function ContentCalendar({
 
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-    const startDate = monthStart;
-    const endDate = monthEnd;
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart);
+    const endDate = endOfWeek(monthEnd);
 
     const dateFormat = "d";
     const rows = [];
@@ -157,8 +160,7 @@ export default function ContentCalendar({
             ))}
           </div>
         );
-        day = addMonths(day, 0);
-        day.setDate(day.getDate() + 1);
+        day = addDays(day, 1);
       }
       rows.push(
         <div

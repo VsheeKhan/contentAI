@@ -22,7 +22,7 @@ export async function getQuestionById(id: string) {
 }
 
 export async function updateQuestion(id: string, data: Partial<QuestionInput>) {
-  return await Question.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  return await Question.findByIdAndUpdate(id, data, { new: true });
 }
 
 export async function deleteQuestion(id: string) {

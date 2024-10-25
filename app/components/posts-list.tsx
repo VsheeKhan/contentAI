@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import { Badge } from "@/components/ui/badge";
 import SchedulePost from "./schedule-post";
+import { toast } from "@/hooks/use-toast";
 
 interface PostsListProps {
   posts: Post[];
@@ -60,8 +61,21 @@ export default function PostsList({
     onUpatePost(index);
   };
 
-  const handleCopyPost = (post: Post) => {
-    console.log("Post copied ", post);
+  const handleCopyPost = async (post: Post) => {
+    try {
+      await navigator.clipboard.writeText(post.content);
+      toast({
+        title: "Post copied",
+        description: "The post content has been copied to your clipboard.",
+      });
+    } catch (err) {
+      console.error("Failed to copy post content:", err);
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy post content. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditPost = (post: Post) => {

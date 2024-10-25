@@ -21,18 +21,17 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Check, Loader2 } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
+import { capitalize } from "../utils/formattingUtils";
 
 type Status = "active" | "inactive";
 type Role = "admin" | "user";
-type Plan = "trial" | "pro";
-type PlanFilters = "all" | Plan;
 type StatusFilter = "all" | Status;
 type User = {
   id: string;
   name: string;
   email: string;
   role: Role;
-  plan: Plan;
+  plan: string;
   status: Status;
   subscriptionId: string;
   freeAccess: boolean;
@@ -43,12 +42,14 @@ export default function UserManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterPlan, setFilterPlan] = useState<PlanFilters>("all");
+  const [filterPlan, setFilterPlan] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<StatusFilter>("all");
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [plans, setPlans] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAllUsers();
+    fetchAllPlans();
   }, []);
 
   const fetchAllUsers = async () => {
@@ -83,6 +84,23 @@ export default function UserManagement() {
       console.error("Error fetching users:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAllPlans = async () => {
+    setError(null);
+    try {
+      const response = await authFetch("/api/plans");
+      if (!response.ok) {
+        throw new Error("Failed to fetch all plans");
+      }
+      const data = await response.json();
+      setPlans(data.map((plan: any) => plan.name));
+    } catch (error) {
+      setError(
+        "An error occurred while fetching all plans. Please try again later."
+      );
+      console.error("Error fetching plans:", error);
     }
   };
 
@@ -206,7 +224,7 @@ export default function UserManagement() {
         />
         <Select
           value={filterPlan}
-          onValueChange={(value: PlanFilters) => {
+          onValueChange={(value: string) => {
             setError(null);
             setFilterPlan(value);
           }}
@@ -216,8 +234,11 @@ export default function UserManagement() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All plans</SelectItem>
-            <SelectItem value="trial">Trial</SelectItem>
-            <SelectItem value="pro">Pro</SelectItem>
+            {plans.map((plan) => (
+              <SelectItem key={plan} value={plan}>
+                {capitalize(plan)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select
@@ -271,14 +292,14 @@ export default function UserManagement() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  user.role
+                  capitalize(user.role)
                 )}
               </TableCell>
               <TableCell>
                 {editingUser?.id === user.id ? (
                   <Select
                     value={editingUser.plan}
-                    onValueChange={(value: Plan) =>
+                    onValueChange={(value: string) =>
                       setEditingUser({ ...editingUser, plan: value })
                     }
                   >
@@ -286,12 +307,15 @@ export default function UserManagement() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="trial">Trial</SelectItem>
-                      <SelectItem value="pro">Pro</SelectItem>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan} value={plan}>
+                          {capitalize(plan)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 ) : (
-                  user.plan
+                  capitalize(user.plan)
                 )}
               </TableCell>
               <TableCell>
@@ -311,7 +335,7 @@ export default function UserManagement() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  user.status
+                  capitalize(user.status)
                 )}
               </TableCell>
               <TableCell>
