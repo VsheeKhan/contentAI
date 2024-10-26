@@ -56,11 +56,6 @@ export default function HomeLayout({
       setSubscriptionStatus(data.status);
     } catch (err) {
       console.error("Error fetching subscription status", err);
-      // toast({
-      //   title: "Error",
-      //   description: "Failed to fetch subscription status. Please try again.",
-      //   variant: "destructive",
-      // });
     }
   };
 
@@ -166,12 +161,55 @@ export default function HomeLayout({
               : "Subscribe"}
           </h1>
           <div className="flex items-center space-x-4">
-            <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-              {subscriptionStatus === "active"
-                ? "Upgraded to Pro"
-                : "Free Trial"}
-            </div>
-            {subscriptionStatus !== "active" ? (
+            {
+              // Show the free trial badge and upgrade button if the user is on a free trial and hasn't expired
+            }
+            {subscriptionStatus !== "active" &&
+              subscriptionStatus !== "canceled" &&
+              !user?.hasExpired && (
+                <>
+                  <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    Free Trial
+                  </div>
+                  <Button
+                    variant="default"
+                    className="bg-pink-500 hover:bg-pink-600"
+                    onClick={() => router.push("/home/subscribe")}
+                  >
+                    Upgrade to Pro
+                  </Button>
+                </>
+              )}
+            {
+              // Show the upgrade button if the user is on a free trial and has expired
+            }
+            {subscriptionStatus !== "active" &&
+              subscriptionStatus !== "canceled" &&
+              user?.hasExpired && (
+                <Button
+                  variant="default"
+                  className="bg-pink-500 hover:bg-pink-600"
+                  onClick={() => router.push("/home/subscribe")}
+                >
+                  Upgrade to Pro
+                </Button>
+              )}
+            {
+              // Show the upgrade button if the user is on a paid pro plan and has not expired
+            }
+            {subscriptionStatus === "active" && !user?.hasExpired && (
+              <Button
+                variant="default"
+                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600"
+                onClick={() => router.push("/home/subscribe?plan=pro")}
+              >
+                Upgraded to Pro
+              </Button>
+            )}
+            {
+              // Show the upgrade button if the user is on a paid pro plan and has expired
+            }
+            {subscriptionStatus === "active" && user?.hasExpired && (
               <Button
                 variant="default"
                 className="bg-pink-500 hover:bg-pink-600"
@@ -179,7 +217,33 @@ export default function HomeLayout({
               >
                 Upgrade to Pro
               </Button>
-            ) : null}
+            )}
+            {
+              // Show the upgrade button if the user is on an active paid pro plan and has canceled
+            }
+            {subscriptionStatus === "canceled" && !user?.hasExpired && (
+              <Button
+                variant="default"
+                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600"
+                onClick={() =>
+                  router.push("/home/subscribe?plan=pro&status=cancelled")
+                }
+              >
+                Active but Cancelled
+              </Button>
+            )}
+            {
+              // Show the upgrade button if the user is a paid pro plan and has canceled and expired
+            }
+            {subscriptionStatus === "canceled" && user?.hasExpired && (
+              <Button
+                variant="default"
+                className="bg-pink-500 hover:bg-pink-600"
+                onClick={() => router.push("/home/subscribe")}
+              >
+                Upgrade to Pro
+              </Button>
+            )}
           </div>
         </header>
         <main className="p-6 space-y-8">{children}</main>

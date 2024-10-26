@@ -15,6 +15,7 @@ interface AuthUser {
   isAdmin: boolean;
   isPersonaAvailable: boolean;
   profileImage: string;
+  hasExpired?: boolean;
 }
 
 interface AuthContextType {
@@ -22,7 +23,8 @@ interface AuthContextType {
   login: (
     token: string,
     isPersonaAvailable: boolean,
-    profileImage: string
+    profileImage: string,
+    hasExpired?: boolean
   ) => Promise<boolean>;
   logout: () => void;
   updateUserPersonaStatus: () => void;
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: payload.isAdmin,
         isPersonaAvailable: JSON.parse(isPersonaAvailableString),
         profileImage: profileImage || "",
+        hasExpired: false,
       });
     } else {
       setUser(null);
@@ -69,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (
       token: string,
       isPersonaAvailable: boolean,
-      profileImage: string
+      profileImage: string,
+      hasExpired = false
     ): Promise<boolean> => {
       return new Promise((resolve) => {
         localStorage.setItem("authToken", token);
@@ -79,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
         localStorage.setItem("profileImage", profileImage);
 
-        const { userId, name, email, isAdmin } = JSON.parse(
+        const { userId, name, email, isAdmin, hasExpired } = JSON.parse(
           atob(token.split(".")[1])
         );
         setUser({
@@ -89,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAdmin,
           isPersonaAvailable,
           profileImage,
+          hasExpired,
         });
         setLoginResolver(() => resolve);
       });

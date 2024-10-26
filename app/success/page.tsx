@@ -16,7 +16,7 @@ export default function StripeSuccess() {
   const router = useRouter();
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen w-full bg-gray-100">
       <Card className="w-[350px]">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
@@ -35,7 +35,10 @@ export default function StripeSuccess() {
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={() => router.push("/home")} className="w-full">
+          <Button
+            onClick={() => router.push("/home/generate")}
+            className="w-full"
+          >
             Go to Dashboard
           </Button>
         </CardFooter>

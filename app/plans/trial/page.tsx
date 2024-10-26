@@ -73,7 +73,7 @@ export default function FreeTrial() {
           className="w-full text-lg py-6"
           onClick={() => {
             updateUserPersonaStatus();
-            router.push("/home");
+            router.push("/home/generate");
           }}
         >
           Start Your Free Trial

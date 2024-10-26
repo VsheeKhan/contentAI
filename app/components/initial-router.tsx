@@ -25,7 +25,7 @@ export default function InitialRouter({
       } else if (pathname?.includes("/home")) {
         router.push(pathname);
       } else {
-        router.push("/home");
+        router.push("/home/generate");
       }
     }
   }, [user, router]);
