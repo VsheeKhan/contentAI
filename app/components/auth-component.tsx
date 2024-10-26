@@ -87,7 +87,8 @@ export default function AuthComponent() {
         );
         console.log("Login successful");
         if (isAdmin) router.push("/admin/dashboard");
-        else router.push("/home");
+        else if (!data.isPersonaAvailable) router.push("/survey");
+        else router.push("/home/generate");
       } else {
         const errorData = await response.json();
         console.error("Login failed: ", errorData);

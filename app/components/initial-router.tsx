@@ -22,6 +22,8 @@ export default function InitialRouter({
         router.push("/admin/dashboard");
       } else if (pathname === "/success") {
         router.push("/success");
+      } else if (pathname?.includes("/home")) {
+        router.push(pathname);
       } else {
         router.push("/home");
       }

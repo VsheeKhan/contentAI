@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { authFetch } from "@/app/utils/authFetch";
 import GeneratePost from "@/app/components/generate-post";
 import { Loader2 } from "lucide-react";
+import { usePosts } from "@/app/contexts/posts-context";
 
 export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [topics, setTopics] = useState<string[]>([]);
+  const { savePost } = usePosts();
 
-  useEffect(() => {
-    fetchTopics();
-  }, []);
-
-  const fetchTopics = async () => {
+  const fetchTopics = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await authFetch("/api/get-custom-topics");
@@ -33,7 +31,11 @@ export default function GeneratePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTopics();
+  }, [fetchTopics]);
 
   const handleGenerateTopics = async () => {
     try {
@@ -78,36 +80,6 @@ export default function GeneratePage() {
     }
   };
 
-  const handleSavePost = async (requestBody: any) => {
-    try {
-      const response = await authFetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-      const data = await response.json();
-      toast({
-        title: "Post created",
-        description: data.scheduleDate
-          ? "Your post has been successfully scheduled."
-          : "Your post has been successfully created and saved.",
-      });
-    } catch (err) {
-      console.error("Error creating post", err);
-      toast({
-        title: "Error",
-        description: `${err}. Failed to create post. Please try again.`,
-        variant: "destructive",
-      });
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -118,7 +90,7 @@ export default function GeneratePage() {
 
   return (
     <GeneratePost
-      handleSavePost={handleSavePost}
+      handleSavePost={savePost}
       handleGenerateTopics={handleGenerateTopics}
       handleGeneratePost={handleGeneratePost}
       topics={topics}

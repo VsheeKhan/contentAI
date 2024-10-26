@@ -155,7 +155,7 @@ export default function ContentCalendar({
                 onClick={() => handleOpenContentViewer(post)}
               >
                 {getPlatformIcon(post.platform)}
-                {post.content.substring(0, 40)}...
+                {post.content.substring(0, 20)}...
               </div>
             ))}
           </div>

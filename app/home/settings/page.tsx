@@ -9,7 +9,7 @@ import { useAuth } from "@/app/contexts/auth-context";
 export default function SettingsPage() {
   const [persona, setPersona] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { updateUserToken, updateUserProfileImage } = useAuth();
+  const { updateUserToken } = useAuth();
 
   useEffect(() => {
     fetchPersona();
@@ -49,7 +49,6 @@ export default function SettingsPage() {
 
       const data = await response.json();
       updateUserToken(data.token);
-      updateUserProfileImage(data.profileImage);
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",

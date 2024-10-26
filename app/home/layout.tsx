@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/app/contexts/auth-context";
 import { authFetch } from "@/app/utils/authFetch";
-import { toast } from "@/hooks/use-toast";
 
 export default function HomeLayout({
   children,

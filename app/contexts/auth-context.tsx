@@ -28,6 +28,7 @@ interface AuthContextType {
   updateUserPersonaStatus: () => void;
   updateUserProfileImage: (newProfileImage: string) => void;
   updateUserToken: (newToken: string) => void;
+  updateUserName: (newName: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,7 +110,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUserProfileImage = (newPofileImage: string) => {
     localStorage.setItem("profileImage", newPofileImage);
-    if (user) setUser({ ...user, profileImage: newPofileImage });
+    setUser((prevUser) => {
+      if (prevUser) {
+        return { ...prevUser, profileImage: newPofileImage };
+      }
+      return prevUser;
+    });
   };
 
   const updateUserToken = (newToken: string) => {
@@ -125,6 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   };
 
+  const updateUserName = (newName: string) => {
+    if (user) {
+      setUser({ ...user, name: newName });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateUserPersonaStatus,
         updateUserProfileImage,
         updateUserToken,
+        updateUserName,
       }}
     >
       {children}
