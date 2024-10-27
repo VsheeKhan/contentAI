@@ -25,20 +25,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
-  } catch (err:any) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  } catch (err) {
+    const errorMessage = (err as Error)?.message || 'Unknown error';
+    return res.status(400).send(`Webhook Error: ${errorMessage}`);
   }
   switch (event.type) {
     case 'invoice.payment_succeeded': {
       const subscription = event.data.object;
       const customerEmail = subscription.customer_email;
       const subscriptionId = subscription.subscription;
-      const userInfo:any = await User.findOne({ email: customerEmail });
-      const planInfo:any = await Plan.findOne({ name: process.env.PLAN_NAME });
-      const subscriptionInfo:any = await Subscription.findOne({ userId: userInfo._id });
-      const subscriptionEndDate:any = subscriptionInfo?.endDateTime;
-      const newSubscriptionEndDate = addDays(subscriptionEndDate, parseInt(planInfo.duration));
-      await Subscription.updateOne({ _id: subscriptionInfo._id }, {planId: planInfo._id, stripeSubscriptionId: subscriptionId, endDateTime: newSubscriptionEndDate});
+      const userInfo = await User.findOne({ email: customerEmail });
+      const planInfo = await Plan.findOne({ name: process.env.PLAN_NAME });
+      const subscriptionInfo = await Subscription.findOne({ userId: userInfo?._id });
+      const subscriptionEndDate = subscriptionInfo?.endDateTime || addDays(new Date(), 30);
+      const planDuration = planInfo?.duration || '30';
+      const newSubscriptionEndDate = addDays(subscriptionEndDate, parseInt(planDuration));
+      await Subscription.updateOne({ _id: subscriptionInfo?._id }, {planId: planInfo?._id, stripeSubscriptionId: subscriptionId, endDateTime: newSubscriptionEndDate});
       break;
     }
     default:
