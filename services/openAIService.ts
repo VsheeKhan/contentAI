@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai';
 import DigitalPersona from '../models/digitalPersona';
 import Token from '@/models/tokens';
-import tiktoken from 'tiktoken';
+// import tiktoken from 'tiktoken';
 
 // Initialize OpenAI API client
 const openai = new OpenAI({
@@ -70,6 +70,7 @@ export async function generatePost(userId:string, topic: string, industry: strin
 		  Instagram: Keep the content concise and visually appealing, with an emphasis on catchy, attention-grabbing text.
 		  LinkedIn: Use a professional and informative tone, offering insights that would resonate with a general business audience.
 		  Twitter: Create short, impactful posts that deliver essential information within the character limit.
+		  
 		  Ensure the posts are engaging, add relevant emojis where appropriate, and follow the best practices for ${platform}. The content should not include any bold headings or start with "**". Use the full token count where possible.
 		  Return the posts in a JSON array of objects, where each object represents one post, following this format:
 		  [
@@ -94,10 +95,16 @@ export async function generatePost(userId:string, topic: string, industry: strin
 		temperature: 0.65
 	  });
 	  const text: any = response.choices[0].message?.content;
-	  const tokenizer = tiktoken.encoding_for_model('gpt-4o-mini');
-	  const tokens = await tokenizer.encode(text);
-	  const cost = (tokens.length / 1000000) * Number(process.env.COST_PER_MILLION_TOKEN);
-	  const saveToken = new Token({tokens: tokens.length, cost});
+	//   const tokenizer = tiktoken.encoding_for_model('gpt-4o-mini');
+	//   const tokens = await tokenizer.encode(text);
+		//   const cost = (tokens.length / 1000000) * Number(process.env.COST_PER_MILLION_TOKEN);
+		const total_tokens = response.usage?.total_tokens;
+		const prompt_token:any = response.usage?.prompt_tokens;
+		const completion_tokens: any = response.usage?.completion_tokens;
+		const input_token_cost:any = process.env.COST_PER_MILLION_INPUT_TOKEN;
+		const output_token_cost:any = process.env.COST_PER_MILLION_OUTPUT_TOKEN;
+		const cost = ((prompt_token / 1000000) * parseFloat(input_token_cost)) + ((completion_tokens / 1000000) * parseFloat(output_token_cost));
+	  const saveToken = new Token({tokens: total_tokens, cost});
 	  await saveToken.save();
 	  return response.choices[0].message?.content;
 	} catch (error: any) {

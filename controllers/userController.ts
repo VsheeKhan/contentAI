@@ -8,6 +8,7 @@ import {
   getUsersByPlan,
   getUserRegistrationCountLast6Months,
   updateUserRoleStatusAndPlan,
+  terminateUser
 } from "../services/userService";
 import Plan from "../models/plan";
 import DigitalPersona from "../models/digitalPersona";
@@ -22,6 +23,7 @@ type Data = {
   token?: string;
   error?: string;
   isPersonaAvailable?: boolean;
+  hasExpired?: boolean;
   profileImage?: string;
 };
 
@@ -86,23 +88,36 @@ export async function loginUser(
     }
 
     try {
-      const user = await authenticateUser(email, password);
+      const user:any = await authenticateUser(email, password);
       // Generate JWT Token
       const token = generateToken(user);
       const existingPersona = await DigitalPersona.findOne({
         userId: user._id,
       });
       const isPersonaAvailable = existingPersona ? true : false;
-      const response: Data = {
-        message: "Login successful",
-        name: user.name,
-        email: user.email,
-        profileImage: user.profileImage ? `/uploads/${user.profileImage}` : "",
-        isPersonaAvailable,
-        token,
-      };
-
-      res.status(200).json(response);
+      if (user?.hasExpired == true) {
+        const response: Data = {
+          message: "Login successful",
+          name: user.name,
+          email: user.email,
+          profileImage: user.profileImage? `/uploads/${user.profileImage}` : "",
+          isPersonaAvailable,
+          hasExpired: true,
+          token,
+        };
+        res.status(200).json(response);
+       } else {
+        const response: Data = {
+          message: "Login successful",
+          name: user.name,
+          email: user.email,
+          profileImage: user.profileImage ? `/uploads/${user.profileImage}` : "",
+          isPersonaAvailable,
+          hasExpired: false,
+          token,
+        };
+        res.status(200).json(response);
+      }
     } catch (error: any) {
       res
         .status(401)
@@ -190,6 +205,20 @@ export async function getUsersByPlanHandler(
   } else {
     res.setHeader("Allow", ["GET"]);
     res.status(405).json({ message: `Method ${req.method} Not Allowed` });
+  }
+}
+
+export async function terminateUserHandler(req: NextApiRequest, res: NextApiResponse) { 
+  try {
+    await connectToDatabase();
+    const userId = req.query.id;
+    await terminateUser(userId as string);
+      res
+        .status(200)
+        .json({ message: "User terminated successfully" });
+  } catch (error) {
+    res.setHeader("Allow", ["DELETE"]);
+    res.status(405).json({ message: `Method Not Allowed` });
   }
 }
 
