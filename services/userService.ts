@@ -1,4 +1,4 @@
-import User from "../models/user";
+import User, {userStatus} from "../models/user";
 import Subscription from "../models/subscription";
 import Plan from "../models/plan";
 import { differenceInDays, subMonths, startOfMonth } from "date-fns";
@@ -52,15 +52,19 @@ export async function authenticateUser(email: string, password: string) {
     throw new Error("User not found");
   }
 
-  const subscription:any = await Subscription.findOne({ userId: user._id });
-
-  if (subscription?.endDateTime < new Date()) {
-    throw new Error("Subscription expired");
-  }
+  if (user?.status == userStatus.banned || user?.status == userStatus.deleted) {
+    throw new Error("User Terminated by admin");
+   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
     throw new Error("Invalid credentials");
+  }
+
+  const subscription:any = await Subscription.findOne({ userId: user._id });
+
+  if (subscription?.endDateTime < new Date()) {
+    return { user, hasExpired: true };
   }
 
   return user;
@@ -290,4 +294,8 @@ export async function updateUserProfile(userId: string, updates: any) {
   if (profileImage) user.profileImage = profileImage;
   await user.save();
   return {user};
+}
+
+export async function terminateUser(userId: string) { 
+  return await User.findByIdAndUpdate(userId, {status: userStatus.banned});
 }
