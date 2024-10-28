@@ -245,15 +245,16 @@ export default function GeneratePost({
   return (
     <>
       <Card className="w-full">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <h2 className="text-xl font-semibold mb-4">
             What would you like to post?
           </h2>
           <Tabs
             defaultValue="topic"
             onValueChange={() => setGeneratedPosts([])}
+            className="w-full"
           >
-            <TabsList className="w-full">
+            <TabsList className="w-full grid grid-cols-2 mb-4">
               <TabsTrigger value="topic" className="flex-1">
                 Topic Suggestion
               </TabsTrigger>
@@ -341,15 +342,15 @@ export default function GeneratePost({
               <PlatformStyleSelector />
             </TabsContent>
           </Tabs>
-          <div className="mt-4 flex items-center space-x-2">
+          <div className="mt-4 flex flex-col sm:flex-row items-center space-x-2 sm:space-y-0 sm:space-x-2">
             <Input
               type="number"
               min="1"
               value={noOfPosts}
               onChange={(e) => setNoOfPosts(parseInt(e.target.value))}
-              className="w-20"
+              className="w-full sm:w-20"
             />
-            <span>Number of posts to generate</span>
+            <span className="text-sm">Number of posts to generate</span>
           </div>
           <Button
             className="w-full mt-4 bg-pink-500 hover:bg-pink-600"
@@ -367,8 +368,8 @@ export default function GeneratePost({
         scheduleStates.length > 0 &&
         generatedPosts.map((generatedPost, generatedIndex) => (
           <Card key={generatedIndex} className="mt-6">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
                     {getPlatformIcon(generatedPost.platform)}

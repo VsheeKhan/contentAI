@@ -26,8 +26,8 @@ export default function PricingPlan({
   const monthlyPrice = 249;
   const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PLAN_ID;
   return (
-    <div className={parent ? "w-full" : ""}>
-      <Card className={parent ? "w-full" : "max-w-2xl mx-auto"}>
+    <div className={parent ? "w-full" : "w-full max-w-md mx-auto"}>
+      <Card className="w-full">
         <CardHeader className="space-y-6">
           {parent ? (
             <button
@@ -45,10 +45,10 @@ export default function PricingPlan({
             </button>
           )}
 
-          <CardTitle className="text-4xl font-bold text-center">
+          <CardTitle className="text-3xl sm:text-4xl font-bold text-center">
             Plan Pricing
           </CardTitle>
-          <CardDescription className="text-4xl font-bold text-center">
+          <CardDescription className="text-2xl sm:text-3xl font-bold text-center">
             Pro
           </CardDescription>
         </CardHeader>
@@ -67,9 +67,9 @@ export default function PricingPlan({
               </Alert>
             )}
             <div>
-              <p className="text-4xl font-bold mt-2">
+              <p className="text-3xl sm:text-4xl font-bold mt-2">
                 ${monthlyPrice}
-                <span className="text-xl font-normal text-muted-foreground">
+                <span className="text-lg sm:text-xl font-normal text-muted-foreground">
                   /month
                 </span>
               </p>
@@ -91,7 +91,7 @@ export default function PricingPlan({
             </ul>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-center">
           {status !== "cancelled" && (
             <CheckoutButton
               priceId={stripePublicKey || ""}

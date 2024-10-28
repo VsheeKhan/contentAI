@@ -112,7 +112,10 @@ export default function ContentCalendar({
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const dayHeaders = daysOfWeek.map((dayOfWeek) => (
-      <div key={dayOfWeek} className="text-center font-bold p-2">
+      <div
+        key={dayOfWeek}
+        className="text-center font-bold p-2 text-xs sm:text-sm"
+      >
         {dayOfWeek}
       </div>
     ));
@@ -136,7 +139,7 @@ export default function ContentCalendar({
         });
         days.push(
           <div
-            className={`bg-white p-2 min-h-[100px] ${
+            className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
               !isSameMonth(day, monthStart)
                 ? "text-gray-400"
                 : isSameDay(day, new Date())
@@ -145,19 +148,25 @@ export default function ContentCalendar({
             }`}
             key={day.toString()}
           >
-            <span className="text-sm font-medium">{formattedDate}</span>
-            {dayPosts.map((post) => (
-              <div
-                key={post.id}
-                className={`mt-1 text-xs rounded p-1 cursor-pointer hover:opacity-80 flex flex-col truncate whitespace-normal items-center ${getPlatformColor(
-                  post.platform
-                )}`}
-                onClick={() => handleOpenContentViewer(post)}
-              >
-                {getPlatformIcon(post.platform)}
-                {post.content.substring(0, 20)}...
-              </div>
-            ))}
+            <span className="text-xs sm:text-sm font-medium">
+              {formattedDate}
+            </span>
+            <div className="flex flex-col space-y-1 mt-1">
+              {dayPosts.map((post) => (
+                <div
+                  key={post.id}
+                  className={`text-xs rounded p-1 cursor-pointer hover:opacity-80 flex items-center justify-center ${getPlatformColor(
+                    post.platform
+                  )}`}
+                  onClick={() => handleOpenContentViewer(post)}
+                >
+                  {getPlatformIcon(post.platform)}
+                  <span className="hidden sm:inline ml-1">
+                    {post.content.substring(0, 20)}...
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         );
         day = addDays(day, 1);
@@ -274,7 +283,7 @@ export default function ContentCalendar({
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>{renderCalendar()}</CardContent>
+        <CardContent className="p-4 pt-0">{renderCalendar()}</CardContent>
       </Card>
       <Dialog open={isContentViewerOpen} onOpenChange={setIsContentViewerOpen}>
         <DialogContent>
