@@ -144,7 +144,7 @@ export default function ProfileSettings({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 md:p-6">
           <CardTitle className="flex justify-between items-center">
             Profile Settings
             {!isEditingProfile && (
@@ -155,8 +155,8 @@ export default function ProfileSettings({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex flex-col md:flex-row items-center space-y-4 md:space-x-4 mb-6">
             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer">
               {profileImage ? (
                 <Image
@@ -179,12 +179,19 @@ export default function ProfileSettings({
             />
             <div className="flex items-center space-x-2">
               {isEditingProfile ? (
-                <Button onClick={triggerFileInput}>
+                <Button
+                  onClick={triggerFileInput}
+                  className="text-xs px-2 py-1 md:text-sm md:px-4 md:py-2"
+                >
                   {profileImage ? "Change Image" : "Upload Image"}
                 </Button>
               ) : null}
               {profileImage && isEditingProfile && (
-                <Button variant="destructive" onClick={removeProfileImage}>
+                <Button
+                  variant="destructive"
+                  onClick={removeProfileImage}
+                  className="text-xs px-2 py-1 md:text-sm md:px-4 md:py-2"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove Image
                 </Button>
@@ -292,7 +299,7 @@ export default function ProfileSettings({
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="p-4 md:p-6">
           <CardTitle className="flex justify-between items-center">
             Persona Settings
             {!isRecreatingPersona ? (
@@ -308,7 +315,7 @@ export default function ProfileSettings({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 md:p-6">
           {!isRecreatingPersona ? (
             <p className="text-gray-900">{persona}</p>
           ) : (

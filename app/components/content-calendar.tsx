@@ -114,7 +114,7 @@ export default function ContentCalendar({
     const dayHeaders = daysOfWeek.map((dayOfWeek) => (
       <div
         key={dayOfWeek}
-        className="text-center font-bold p-2 text-xs sm:text-sm"
+        className="text-center font-bold p-1 md:p-2 text-xs sm:text-sm"
       >
         {dayOfWeek}
       </div>
