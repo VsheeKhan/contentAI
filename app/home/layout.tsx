@@ -82,10 +82,21 @@ export default function HomeLayout({
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const headerTitle =
+    pathname === "/home/generate"
+      ? "Generate Post"
+      : pathname === "/home/posts"
+      ? "Posts"
+      : pathname === "/home/calendar"
+      ? "Calendar"
+      : pathname === "/home/settings"
+      ? "Settings"
+      : "Subscribe";
+
   return (
     <div className="flex h-screen bg-gray-100 w-full">
       {/* Mobile menu button */}
-      <div className="md:hidden p-4 bg-white">
+      <div className="md:hidden p-3 bg-white">
         <Button variant="ghost" onClick={toggleMobileMenu}>
           <Menu className="h-6 w-6" />
         </Button>
@@ -171,19 +182,11 @@ export default function HomeLayout({
       </div>
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4 pb-3 flex flex-col md:flex-row justify-between items-center">
-          <h1 className="text-2xl font-semibold mb-4 md:mb-0">
-            {pathname === "/home/generate"
-              ? "Generate Post"
-              : pathname === "/home/posts"
-              ? "Posts"
-              : pathname === "/home/calendar"
-              ? "Calendar"
-              : pathname === "/home/settings"
-              ? "Settings"
-              : "Subscribe"}
+        <header className="bg-white shadow-sm p-3 md:p-4 md:pb-3 flex flex-row justify-between items-center">
+          <h1 className="text-xl md:text-2xl font-semibold md:mb-0">
+            {headerTitle}
           </h1>
-          <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
+          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
             {
               // Show the free trial badge and upgrade button if the user is on a free trial and hasn't expired
             }
@@ -269,7 +272,7 @@ export default function HomeLayout({
             )}
           </div>
         </header>
-        <main className="p-6 space-y-8">{children}</main>
+        <main className="p-4 md:p-6 space-y-8">{children}</main>
       </div>
       <Toaster />
     </div>

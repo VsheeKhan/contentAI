@@ -69,6 +69,7 @@ export default function GeneratePost({
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
     null
   );
+  const [tabValue, setTabValue] = useState("topic");
   const { user } = useAuth();
   const router = useRouter();
 
@@ -246,15 +247,37 @@ export default function GeneratePost({
     <>
       <Card className="w-full">
         <CardContent className="p-4 sm:p-6">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 text-center md:text-start">
             What would you like to post?
           </h2>
           <Tabs
             defaultValue="topic"
-            onValueChange={() => setGeneratedPosts([])}
+            onValueChange={(value) => {
+              setTabValue(value);
+              setGeneratedPosts([]);
+            }}
             className="w-full"
+            value={tabValue}
           >
-            <TabsList className="w-full grid grid-cols-2 mb-4">
+            {/* Mobile view: Dropdown */}
+            <div className="sm:hidden mb-5">
+              <Select
+                value={tabValue}
+                onValueChange={(value) => {
+                  setTabValue(value);
+                  setGeneratedPosts([]);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a tab" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="topic">Topic Suggestion</SelectItem>
+                  <SelectItem value="custom">Custom Topic</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <TabsList className="hidden sm:grid sm:grid-cols-2 w-full mb-4">
               <TabsTrigger value="topic" className="flex-1">
                 Topic Suggestion
               </TabsTrigger>
@@ -273,7 +296,7 @@ export default function GeneratePost({
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a topic" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-1/2 md:w-full">
                         {topics.map((topic, index) => (
                           <SelectItem key={index} value={topic}>
                             {topic}
@@ -350,7 +373,9 @@ export default function GeneratePost({
               onChange={(e) => setNoOfPosts(parseInt(e.target.value))}
               className="w-full sm:w-20"
             />
-            <span className="text-sm">Number of posts to generate</span>
+            <span className="text-sm self-start md:self-center">
+              Number of posts to generate
+            </span>
           </div>
           <Button
             className="w-full mt-4 bg-pink-500 hover:bg-pink-600"
@@ -367,7 +392,7 @@ export default function GeneratePost({
       {generatedPosts &&
         scheduleStates.length > 0 &&
         generatedPosts.map((generatedPost, generatedIndex) => (
-          <Card key={generatedIndex} className="mt-6">
+          <Card key={generatedIndex} className="!mt-3 md:!mt-6">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
                 <div className="flex items-center space-x-2">

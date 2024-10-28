@@ -134,10 +134,12 @@ export default function AuthComponent() {
   };
 
   return (
-    <Card className="w-[400px]">
+    <Card className="w-[300px] md:w-[400px] mx-auto">
       <CardHeader>
-        <CardTitle className="flex justify-center">Welcome</CardTitle>
-        <CardDescription className="flex justify-center">
+        <CardTitle className="text-2xl sm:text-3xl text-center">
+          Welcome
+        </CardTitle>
+        <CardDescription className="flex justify-center sm:text-center">
           Login or create an account to get started
         </CardDescription>
       </CardHeader>

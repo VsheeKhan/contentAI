@@ -50,8 +50,8 @@ export function PersonaPreview({
   };
 
   return (
-    <div className="max-w-full mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold">Generated Persona</h1>
+    <div className="max-w-full mt-2 md:mx-auto p-6 space-y-8">
+      <h1 className="text-2xl md:text-3xl font-bold">Generated Persona</h1>
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -59,7 +59,7 @@ export function PersonaPreview({
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-4 md:p-6 !mt-2 md:!mt-6 rounded-lg shadow-md">
         <Textarea
           value={editedPersona}
           onChange={handleChange}
