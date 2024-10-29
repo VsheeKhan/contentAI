@@ -309,7 +309,7 @@ export default function PersonaSurvey({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
+    <div className="max-w-2xl mt-2 md:mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold">Persona Survey</h1>
       <div className="space-y-4">
         {renderQuestion()}

@@ -18,12 +18,12 @@ export default function FreeTrial() {
   const { updateUserPersonaStatus } = useAuth();
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="mx-5 my-10 flex flex-col">
       <CardHeader>
-        <CardTitle className="text-4xl font-bold text-center">
+        <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold text-center">
           7-Day Free Trial
         </CardTitle>
-        <p className="text-xl text-center text-muted-foreground">
+        <p className="text-base sm:text-lg md:text-xl text-center text-muted-foreground">
           Experience the power of our AI content generation
         </p>
       </CardHeader>

@@ -13,6 +13,7 @@ import {
   Loader2,
   Settings,
   CalendarIcon,
+  Menu,
 } from "lucide-react";
 import { useAuth } from "@/app/contexts/auth-context";
 import { authFetch } from "@/app/utils/authFetch";
@@ -27,6 +28,7 @@ export default function HomeLayout({
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
     null
   );
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -76,10 +78,35 @@ export default function HomeLayout({
     );
   }
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const headerTitle =
+    pathname === "/home/generate"
+      ? "Generate Post"
+      : pathname === "/home/posts"
+      ? "Posts"
+      : pathname === "/home/calendar"
+      ? "Calendar"
+      : pathname === "/home/settings"
+      ? "Settings"
+      : "Subscribe";
+
   return (
     <div className="flex h-screen bg-gray-100 w-full">
+      {/* Mobile menu button */}
+      <div className="md:hidden p-3 bg-white">
+        <Button variant="ghost" onClick={toggleMobileMenu}>
+          <Menu className="h-6 w-6" />
+        </Button>
+      </div>
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md">
+      <div
+        className={`bg-white shadow-md ${
+          isMobileMenuOpen ? "block" : "hidden"
+        } md:block md:w-64`}
+      >
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold flex items-center">
             <span
@@ -107,6 +134,7 @@ export default function HomeLayout({
             <Button
               variant={pathname === "/home/generate" ? "default" : "ghost"}
               className="w-full justify-start mb-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <PenLine className="mr-2 h-4 w-4" /> Generate Post
             </Button>
@@ -115,6 +143,7 @@ export default function HomeLayout({
             <Button
               variant={pathname === "/home/posts" ? "default" : "ghost"}
               className="w-full justify-start mb-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <FileText className="mr-2 h-4 w-4" /> Posts
             </Button>
@@ -123,6 +152,7 @@ export default function HomeLayout({
             <Button
               variant={pathname === "/home/calendar" ? "default" : "ghost"}
               className="w-full justify-start mb-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <CalendarIcon className="mr-2 h-4 w-4" /> Calendar
             </Button>
@@ -131,6 +161,7 @@ export default function HomeLayout({
             <Button
               variant={pathname === "/home/settings" ? "default" : "ghost"}
               className="w-full justify-start mb-2"
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               <Settings className="mr-2 h-4 w-4" /> Settings
             </Button>
@@ -140,7 +171,10 @@ export default function HomeLayout({
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={logout}
+            onClick={() => {
+              logout();
+              setIsMobileMenuOpen(false);
+            }}
           >
             <LogOut className="mr-2 h-4 w-4" /> Log Out
           </Button>
@@ -148,19 +182,11 @@ export default function HomeLayout({
       </div>
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4 pb-3 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">
-            {pathname === "/home/generate"
-              ? "Generate Post"
-              : pathname === "/home/posts"
-              ? "Posts"
-              : pathname === "/home/calendar"
-              ? "Calendar"
-              : pathname === "/home/settings"
-              ? "Settings"
-              : "Subscribe"}
+        <header className="bg-white shadow-sm p-3 md:p-4 md:pb-3 flex flex-row justify-between items-center">
+          <h1 className="text-xl md:text-2xl font-semibold md:mb-0">
+            {headerTitle}
           </h1>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
             {
               // Show the free trial badge and upgrade button if the user is on a free trial and hasn't expired
             }
@@ -173,7 +199,7 @@ export default function HomeLayout({
                   </div>
                   <Button
                     variant="default"
-                    className="bg-pink-500 hover:bg-pink-600"
+                    className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
                     onClick={() => router.push("/home/subscribe")}
                   >
                     Upgrade to Pro
@@ -188,7 +214,7 @@ export default function HomeLayout({
               user?.hasExpired && (
                 <Button
                   variant="default"
-                  className="bg-pink-500 hover:bg-pink-600"
+                  className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
                   onClick={() => router.push("/home/subscribe")}
                 >
                   Upgrade to Pro
@@ -200,7 +226,7 @@ export default function HomeLayout({
             {subscriptionStatus === "active" && !user?.hasExpired && (
               <Button
                 variant="default"
-                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600"
+                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
                 onClick={() => router.push("/home/subscribe?plan=pro")}
               >
                 Upgraded to Pro
@@ -212,7 +238,7 @@ export default function HomeLayout({
             {subscriptionStatus === "active" && user?.hasExpired && (
               <Button
                 variant="default"
-                className="bg-pink-500 hover:bg-pink-600"
+                className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
                 onClick={() => router.push("/home/subscribe")}
               >
                 Upgrade to Pro
@@ -224,7 +250,7 @@ export default function HomeLayout({
             {subscriptionStatus === "canceled" && !user?.hasExpired && (
               <Button
                 variant="default"
-                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600"
+                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
                 onClick={() =>
                   router.push("/home/subscribe?plan=pro&status=cancelled")
                 }
@@ -238,7 +264,7 @@ export default function HomeLayout({
             {subscriptionStatus === "canceled" && user?.hasExpired && (
               <Button
                 variant="default"
-                className="bg-pink-500 hover:bg-pink-600"
+                className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
                 onClick={() => router.push("/home/subscribe")}
               >
                 Upgrade to Pro
@@ -246,7 +272,7 @@ export default function HomeLayout({
             )}
           </div>
         </header>
-        <main className="p-6 space-y-8">{children}</main>
+        <main className="p-4 md:p-6 space-y-8">{children}</main>
       </div>
       <Toaster />
     </div>
