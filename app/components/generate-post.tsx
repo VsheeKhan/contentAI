@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "../contexts/auth-context";
 import SchedulePost from "./schedule-post";
+import { authFetch } from "../utils/authFetch";
+import { useRouter } from "next/navigation";
 
 type Platform = "Facebook" | "Twitter" | "LinkedIn" | "Instagram";
 type Style = "Concise" | "Detailed" | "Persuasive" | "Creative";
@@ -64,8 +66,28 @@ export default function GeneratePost({
       currentYear: number;
     }[]
   >([]);
-
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(
+    null
+  );
   const { user } = useAuth();
+  const router = useRouter();
+
+  const getSubscriptionStatus = async () => {
+    try {
+      const response = await authFetch("/api/subscription-status");
+      if (!response.ok) {
+        throw new Error("Failed to fetch subscription status");
+      }
+      const data = await response.json();
+      setSubscriptionStatus(data.status);
+    } catch (err) {
+      console.error("Error fetching subscription status", err);
+    }
+  };
+
+  useEffect(() => {
+    getSubscriptionStatus();
+  }, []);
 
   useEffect(() => {
     if (generatedPosts && generatedPosts.length > 0) {
@@ -114,12 +136,30 @@ export default function GeneratePost({
   };
 
   const onGenerateTopics = async () => {
+    if (
+      (subscriptionStatus !== "active" &&
+        subscriptionStatus !== "canceled" &&
+        user?.hasExpired) ||
+      (subscriptionStatus === "active" && user?.hasExpired) ||
+      (subscriptionStatus === "canceled" && user?.hasExpired)
+    ) {
+      router.push("/home/subscribe");
+    }
     setIsGeneratingTopics(true);
     await handleGenerateTopics();
     setIsGeneratingTopics(false);
   };
 
   const onGeneratePost = async () => {
+    if (
+      (subscriptionStatus !== "active" &&
+        subscriptionStatus !== "canceled" &&
+        user?.hasExpired) ||
+      (subscriptionStatus === "active" && user?.hasExpired) ||
+      (subscriptionStatus === "canceled" && user?.hasExpired)
+    ) {
+      router.push("/home/subscribe");
+    }
     setIsGeneratingPost(true);
     try {
       const posts = await handleGeneratePost({

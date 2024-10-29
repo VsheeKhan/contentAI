@@ -72,7 +72,7 @@ export default function Playground() {
       const data = await response.json();
       setSubscriptionStatus(data.status);
       if (data.status === "expired") {
-        router.push("/home/plans/pricing");
+        router.push("/plans/pricing");
       }
     } catch (err) {
       console.error("Error fetching subscription status", err);

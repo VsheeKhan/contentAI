@@ -73,13 +73,13 @@ export default function FreeTrial() {
           className="w-full text-lg py-6"
           onClick={() => {
             updateUserPersonaStatus();
-            router.push("/home");
+            router.push("/home/generate");
           }}
         >
           Start Your Free Trial
         </Button>
         <Link
-          href="/home/plans/pricing"
+          href="/plans/pricing"
           className="text-center text-muted-foreground hover:underline"
         >
           View full pricing options

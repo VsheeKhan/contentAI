@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "./contexts/auth-context";
 import InitialRouter from "./components/initial-router";
+import { PostsProvider } from "./contexts/posts-context";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,7 +35,7 @@ export default function RootLayout({
         <AuthProvider>
           <InitialRouter>
             <main className="h-screen flex justify-center items-center">
-              {children}
+              <PostsProvider>{children}</PostsProvider>
             </main>
           </InitialRouter>
         </AuthProvider>

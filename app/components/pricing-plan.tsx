@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Card,
   CardHeader,
@@ -7,16 +8,20 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import CheckoutButton from "@/components/ui/CheckoutButton";
-import { ArrowLeft, CheckCircle2, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, X } from "lucide-react";
 
 interface PricingPlanProps {
   parent: boolean;
   handleCancel: () => void;
+  currentPlan?: string;
+  status?: string;
 }
 
 export default function PricingPlan({
   parent,
   handleCancel,
+  currentPlan,
+  status,
 }: PricingPlanProps) {
   const monthlyPrice = 249;
   const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PLAN_ID;
@@ -49,6 +54,18 @@ export default function PricingPlan({
         </CardHeader>
         <CardContent>
           <div className="space-y-6 text-center">
+            {status === "cancelled" && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Subscription Cancelled</AlertTitle>
+                <AlertDescription>
+                  Your subscription has been canceled but is still active till
+                  the end of the current billing cycle. Renew your subscription
+                  at the end of the billing period to continue enjoying premium
+                  benefits.
+                </AlertDescription>
+              </Alert>
+            )}
             <div>
               <p className="text-4xl font-bold mt-2">
                 ${monthlyPrice}
@@ -75,7 +92,13 @@ export default function PricingPlan({
           </div>
         </CardContent>
         <CardFooter>
-          <CheckoutButton priceId={stripePublicKey || ""} />
+          {status !== "cancelled" && (
+            <CheckoutButton
+              priceId={stripePublicKey || ""}
+              plan={currentPlan}
+              handleCancel={handleCancel}
+            />
+          )}
         </CardFooter>
       </Card>
     </div>

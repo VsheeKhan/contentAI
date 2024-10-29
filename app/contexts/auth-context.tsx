@@ -15,6 +15,7 @@ interface AuthUser {
   isAdmin: boolean;
   isPersonaAvailable: boolean;
   profileImage: string;
+  hasExpired?: boolean;
 }
 
 interface AuthContextType {
@@ -22,12 +23,14 @@ interface AuthContextType {
   login: (
     token: string,
     isPersonaAvailable: boolean,
-    profileImage: string
+    profileImage: string,
+    hasExpired?: boolean
   ) => Promise<boolean>;
   logout: () => void;
   updateUserPersonaStatus: () => void;
   updateUserProfileImage: (newProfileImage: string) => void;
   updateUserToken: (newToken: string) => void;
+  updateUserName: (newName: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: payload.isAdmin,
         isPersonaAvailable: JSON.parse(isPersonaAvailableString),
         profileImage: profileImage || "",
+        hasExpired: false,
       });
     } else {
       setUser(null);
@@ -68,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (
       token: string,
       isPersonaAvailable: boolean,
-      profileImage: string
+      profileImage: string,
+      hasExpired = false
     ): Promise<boolean> => {
       return new Promise((resolve) => {
         localStorage.setItem("authToken", token);
@@ -78,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
         localStorage.setItem("profileImage", profileImage);
 
-        const { userId, name, email, isAdmin } = JSON.parse(
+        const { userId, name, email, isAdmin, hasExpired } = JSON.parse(
           atob(token.split(".")[1])
         );
         setUser({
@@ -88,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           isAdmin,
           isPersonaAvailable,
           profileImage,
+          hasExpired,
         });
         setLoginResolver(() => resolve);
       });
@@ -109,7 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateUserProfileImage = (newPofileImage: string) => {
     localStorage.setItem("profileImage", newPofileImage);
-    if (user) setUser({ ...user, profileImage: newPofileImage });
+    setUser((prevUser) => {
+      if (prevUser) {
+        return { ...prevUser, profileImage: newPofileImage };
+      }
+      return prevUser;
+    });
   };
 
   const updateUserToken = (newToken: string) => {
@@ -125,6 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   };
 
+  const updateUserName = (newName: string) => {
+    if (user) {
+      setUser({ ...user, name: newName });
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateUserPersonaStatus,
         updateUserProfileImage,
         updateUserToken,
+        updateUserName,
       }}
     >
       {children}

@@ -149,13 +149,13 @@ export default function ContentCalendar({
             {dayPosts.map((post) => (
               <div
                 key={post.id}
-                className={`mt-1 text-xs rounded p-1 truncate cursor-pointer hover:opacity-80 flex items-center ${getPlatformColor(
+                className={`mt-1 text-xs rounded p-1 cursor-pointer hover:opacity-80 flex flex-col truncate whitespace-normal items-center ${getPlatformColor(
                   post.platform
                 )}`}
                 onClick={() => handleOpenContentViewer(post)}
               >
                 {getPlatformIcon(post.platform)}
-                {post.content.substring(0, 30)}...
+                {post.content.substring(0, 20)}...
               </div>
             ))}
           </div>
@@ -245,8 +245,7 @@ export default function ContentCalendar({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Content Calendar</span>
+          <CardTitle className="flex justify-center items-center">
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"

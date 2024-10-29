@@ -37,7 +37,7 @@ export default function ProfileSettings({
   });
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isRecreatingPersona, setIsRecreatingPersona] = useState(false);
-  const { user } = useAuth();
+  const { user, updateUserName, updateUserProfileImage } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -78,7 +78,8 @@ export default function ProfileSettings({
     e.preventDefault();
     const { firstName, lastName, password, confirmPassword } = profileSettings;
     const formData = new FormData();
-    formData.append("name", `${firstName} ${lastName}`);
+    const newName = `${firstName} ${lastName}`;
+    formData.append("name", newName);
     if (password) {
       if (password !== confirmPassword) {
         toast({
@@ -96,6 +97,10 @@ export default function ProfileSettings({
     }
     const data = await handleSaveProfile(formData);
     if (data.status === "failure") setProfileImage(null);
+    else {
+      updateUserName(newName);
+      updateUserProfileImage(data.data.profileImage);
+    }
     setIsEditingProfile(false);
   };
 

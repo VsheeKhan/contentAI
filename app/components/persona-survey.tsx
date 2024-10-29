@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -211,7 +210,7 @@ export default function PersonaSurvey({
   };
 
   const handleSavePersona = (newPersona: string) => {
-    if (!editPersona) router.push("/home/plans/trial");
+    if (!editPersona) router.push("/plans/trial");
     if (editPersona && handleUpdatePersona) {
       handleUpdatePersona(newPersona);
     }
