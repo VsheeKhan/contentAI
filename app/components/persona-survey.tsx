@@ -58,15 +58,30 @@ export default function PersonaSurvey({
         throw new Error("Failed to fetch questions");
       }
       const data = await response.json();
-      const questionsToAdd: Question[] = data.map((question) => ({
-        id: question._id,
-        question: question.question,
-        type: question.questionType,
-        options: question.options ? Object.values(question.options) : undefined,
-        example: question.example || undefined,
-      }));
+      const questionsToAdd: Question[] = data.map(
+        (question: {
+          _id: number;
+          question: string;
+          questionType: QuestionType;
+          options?: Record<string, string>;
+          example?: string;
+        }) => ({
+          id: question._id,
+          question: question.question,
+          type: question.questionType,
+          options: question.options
+            ? Object.values(question.options)
+            : undefined,
+          example: question.example || undefined,
+        })
+      );
       setQuestions([...questions, ...questionsToAdd]);
-      setSurveyResults(data.map(({ question }) => ({ question, answer: "" })));
+      setSurveyResults(
+        data.map((question: { question: string }) => ({
+          question: question.question,
+          answer: "",
+        }))
+      );
     } catch (err) {
       setError(
         "An error occurred while fetching questions. Please try again later."

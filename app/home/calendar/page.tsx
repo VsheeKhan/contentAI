@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { authFetch } from "@/app/utils/authFetch";
 import ContentCalendar from "@/app/components/content-calendar";
 import { Loader2 } from "lucide-react";
-import { ApiResponsePost, Post } from "../posts/page";
+import { Post } from "../../contexts/posts-context";
 
 export default function CalendarPage() {
   const [scheduledPosts, setScheduledPosts] = useState<Post[]>([]);
@@ -35,7 +35,18 @@ export default function CalendarPage() {
             createdAt,
             scheduleDate,
             isCanceled,
-          }: ApiResponsePost) => ({
+          }: {
+            _id: string;
+            userId: string;
+            content: string;
+            topic: string;
+            industry: string;
+            tone: string;
+            platform: string;
+            createdAt: Date;
+            scheduleDate: Date;
+            isCanceled: boolean;
+          }) => ({
             id: _id,
             userId,
             content,
@@ -63,9 +74,11 @@ export default function CalendarPage() {
   };
 
   const handleReschedulePost = async (
-    requestBody: any,
-    postId: string,
-    reschedule: boolean
+    requestBody: {
+      content: string;
+      scheduleDate: Date;
+    },
+    postId: string
   ) => {
     try {
       const response = await authFetch(`/api/posts/${postId}`, {

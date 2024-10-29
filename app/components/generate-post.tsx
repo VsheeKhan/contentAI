@@ -29,15 +29,29 @@ import { useAuth } from "../contexts/auth-context";
 import SchedulePost from "./schedule-post";
 import { authFetch } from "../utils/authFetch";
 import { useRouter } from "next/navigation";
+import { Platform } from "../contexts/posts-context";
 
-type Platform = "Facebook" | "Twitter" | "LinkedIn" | "Instagram";
 type Style = "Concise" | "Detailed" | "Persuasive" | "Creative";
 
 interface GeneratePostProps {
-  handleSavePost: (requestBody: any) => Promise<void>;
   topics: string[];
+  handleSavePost: (requestBody: {
+    topic: string;
+    industry: string;
+    tone: string;
+    platform: Platform;
+    scheduleDate?: Date;
+    generatedPost: string;
+  }) => Promise<void>;
   handleGenerateTopics: () => Promise<void>;
-  handleGeneratePost: (requestBody: any) => Promise<{ post: string }[]>;
+  handleGeneratePost: (requestBody: {
+    topic: string;
+    industry: string;
+    tone: string;
+    platform: string;
+    style: string;
+    noOfPosts: number;
+  }) => Promise<{ post: string }[]>;
 }
 
 export default function GeneratePost({

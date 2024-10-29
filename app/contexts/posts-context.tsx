@@ -10,6 +10,7 @@ import React, {
 import { toast } from "@/hooks/use-toast";
 import { authFetch } from "@/app/utils/authFetch";
 
+export type Platform = "Facebook" | "Twitter" | "LinkedIn" | "Instagram";
 type PostObj = {
   userId: string;
   content: string;
@@ -30,13 +31,35 @@ type ApiResponsePost = PostObj & {
   _id: string;
 };
 
+type UpdatePostRequestBody = {
+  topic?: string;
+  industry?: string;
+  tone?: string;
+  platform?: string;
+  content?: string;
+  scheduleDate?: Date;
+  isCanceled?: boolean;
+};
+
+type SavePostRequestBody = {
+  topic: string;
+  industry: string;
+  tone: string;
+  platform: Platform;
+  scheduleDate?: Date;
+  generatedPost: string;
+};
+
 interface PostsContextType {
   posts: Post[];
   isLoading: boolean;
   fetchPosts: () => Promise<void>;
-  updatePost: (requestBody: any, editingPostId: string) => Promise<void>;
+  updatePost: (
+    requestBody: UpdatePostRequestBody,
+    editingPostId: string
+  ) => Promise<void>;
   deletePost: (postId: string) => Promise<void>;
-  savePost: (requestBody: any) => Promise<void>;
+  savePost: (requestBody: SavePostRequestBody) => Promise<void>;
 }
 
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
@@ -104,7 +127,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const updatePost = useCallback(
-    async (requestBody: any, editingPostId: string) => {
+    async (requestBody: UpdatePostRequestBody, editingPostId: string) => {
       try {
         const response = await authFetch(`/api/posts/${editingPostId}`, {
           method: "PUT",
@@ -163,7 +186,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const savePost = useCallback(async (requestBody: any) => {
+  const savePost = useCallback(async (requestBody: SavePostRequestBody) => {
     try {
       const response = await authFetch("/api/posts", {
         method: "POST",

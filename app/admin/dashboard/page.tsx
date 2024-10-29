@@ -33,6 +33,35 @@ type TabTypes =
   | "users"
   | "trials"
   | "subscriptions";
+
+export type PlanInfo = {
+  _id: string;
+  name: string;
+  amount: number;
+  duration: string;
+  status: number;
+  createdAt: string;
+  updatedAt: string;
+  description: string;
+};
+
+export type UserByPlanInfo = {
+  _id: string;
+  name: string;
+  email: string;
+  subscription: {
+    id: string;
+    status: number;
+    daysLeft: number;
+    plan: string;
+    endDateTime: string;
+  };
+};
+
+export interface UserInfo extends UserByPlanInfo {
+  userType: number;
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabTypes>("analytics");
   const [isMobile, setIsMobile] = useState(false);

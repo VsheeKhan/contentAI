@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("authToken");
     const isPersonaAvailableString = localStorage.getItem("isPersonaAvailable");
     const profileImage = localStorage.getItem("profileImage");
+    const hasExpiredString = localStorage.getItem("hasExpired");
     if (token && isPersonaAvailableString) {
       const payload = JSON.parse(atob(token.split(".")[1]));
       setUser({
@@ -61,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin: payload.isAdmin,
         isPersonaAvailable: JSON.parse(isPersonaAvailableString),
         profileImage: profileImage || "",
-        hasExpired: false,
+        hasExpired: JSON.parse(hasExpiredString || "false"),
       });
     } else {
       setUser(null);
@@ -82,8 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           JSON.stringify(isPersonaAvailable)
         );
         localStorage.setItem("profileImage", profileImage);
-
-        const { userId, name, email, isAdmin, hasExpired } = JSON.parse(
+        localStorage.setItem("hasExpired", JSON.stringify(hasExpired));
+        const { userId, name, email, isAdmin } = JSON.parse(
           atob(token.split(".")[1])
         );
         setUser({

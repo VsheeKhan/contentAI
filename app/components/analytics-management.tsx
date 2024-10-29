@@ -64,7 +64,9 @@ export default function AnalyticsOverview() {
     monthlyAIModelUsagePercentageChange,
     setMonthlyAIModelUsagePercentageChange,
   ] = useState<number>(0);
-  const [dailyAIModelUsage, setDailyAIModelUsage] = useState<any[]>([]);
+  const [dailyAIModelUsage, setDailyAIModelUsage] = useState<
+    { date: string; usage: number }[]
+  >([]);
 
   useEffect(() => {
     fetchUserStats();
@@ -150,7 +152,7 @@ export default function AnalyticsOverview() {
       }
       const data = await response.json();
       setDailyAIModelUsage(
-        data.map((item: any) => ({
+        data.map((item: { _id: string; totalTokens: number }) => ({
           date: format(item._id, "d MMM"),
           usage: item.totalTokens,
         }))

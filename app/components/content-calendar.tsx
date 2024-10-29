@@ -30,7 +30,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Post } from "./playground";
 import SchedulePost from "./schedule-post";
 import {
   Tooltip,
@@ -44,13 +43,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Post } from "../contexts/posts-context";
 
 interface ContentCalendarProps {
   scheduledPosts: Post[];
   handleReschedulePost: (
-    requestBody: any,
-    postId: string,
-    reschedule: boolean
+    requestBody: { content: string; scheduleDate: Date },
+    postId: string
   ) => Promise<void>;
   handleCancelScheduledPost: (postId: string) => Promise<void>;
 }
@@ -177,7 +176,10 @@ export default function ContentCalendar({
             !post.isCanceled &&
             scheduleStates.length > 0
           )
-            return isSameDay(parseISO(post.scheduleDate), cloneDay);
+            return (
+              post.scheduleDate &&
+              isSameDay(parseISO(post.scheduleDate), cloneDay)
+            );
         });
         const dayId = day.toISOString();
         const visiblePosts = windowWidth > 768 ? 2 : 1;
@@ -269,14 +271,13 @@ export default function ContentCalendar({
 
   const onReschedulePost = async (index: number) => {
     if (selectedPost && index != -1) {
-      const newScheduleDate = scheduleStates[index].selectedDate.toISOString();
+      // const newScheduleDate = scheduleStates[index].selectedDate.toISOString();
       await handleReschedulePost(
         {
           content: selectedPost.content,
           scheduleDate: scheduleStates[index].selectedDate,
         },
-        scheduledPosts[index].id,
-        true
+        scheduledPosts[index].id
       );
       const newIndex = scheduledPosts.findIndex(
         (post) => post.id === selectedPost.id

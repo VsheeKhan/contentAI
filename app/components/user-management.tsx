@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Check, Loader2 } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
 import { capitalize } from "../utils/formattingUtils";
+import { PlanInfo, UserInfo } from "../admin/dashboard/page";
 
 type Status = "active" | "inactive";
 type Role = "admin" | "user";
@@ -62,7 +63,7 @@ export default function UserManagement() {
       }
       const data = await response.json();
 
-      const usersData: Array<User> = data.users.map((user) => ({
+      const usersData: Array<User> = data.users.map((user: UserInfo) => ({
         id: user._id,
         name: user.name,
         email: user.email,
@@ -95,7 +96,7 @@ export default function UserManagement() {
         throw new Error("Failed to fetch all plans");
       }
       const data = await response.json();
-      setPlans(data.map((plan: any) => plan.name));
+      setPlans(data.map((plan: PlanInfo) => plan.name));
     } catch (error) {
       setError(
         "An error occurred while fetching all plans. Please try again later."
@@ -130,7 +131,7 @@ export default function UserManagement() {
         throw new Error("Failed to update user");
       }
 
-      const updatedUser = await response.json();
+      // const updatedUser = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === editingUser.id
@@ -173,7 +174,7 @@ export default function UserManagement() {
       if (!response.ok) {
         throw new Error(`Failed to grant free access to user ${user.name}`);
       }
-      const updatedSubscription = await response.json();
+      // const updatedSubscription = await response.json();
       setUsers((prevUsers) =>
         prevUsers.map((userItem) =>
           user.id === userItem.id ? { ...userItem, freeAccess: true } : userItem
@@ -387,7 +388,4 @@ export default function UserManagement() {
       </Table>
     </div>
   );
-}
-function useMeno(arg0: () => User[], arg1: (string | User[])[]) {
-  throw new Error("Function not implemented.");
 }

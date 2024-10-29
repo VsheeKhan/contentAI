@@ -61,27 +61,35 @@ export default function QuestionManagement() {
         throw new Error("Failed to fetch questions");
       }
       const data = await response.json();
-      const questionsToAdd = data.map((question) => {
-        const questionToAdd: Question = {
-          id: question._id,
-          text: question.question,
-          type:
-            question.questionType === "single_choice"
-              ? "Single Select"
-              : question.questionType === "radio"
-              ? "Yes/No"
-              : question.questionType === "mcq"
-              ? "Multiple Select"
-              : "Input text",
-        };
-        if (question.options) {
-          questionToAdd.options = Object.values(question.options);
+      const questionsToAdd = data.map(
+        (question: {
+          _id: number;
+          question: string;
+          questionType: string;
+          options: Record<string, string> | null;
+          example: string | null;
+        }) => {
+          const questionToAdd: Question = {
+            id: question._id,
+            text: question.question,
+            type:
+              question.questionType === "single_choice"
+                ? "Single Select"
+                : question.questionType === "radio"
+                ? "Yes/No"
+                : question.questionType === "mcq"
+                ? "Multiple Select"
+                : "Input text",
+          };
+          if (question.options) {
+            questionToAdd.options = Object.values(question.options);
+          }
+          if (question.example) {
+            questionToAdd.example = question.example;
+          }
+          return questionToAdd;
         }
-        if (question.example) {
-          questionToAdd.example = question.example;
-        }
-        return questionToAdd;
-      });
+      );
       setQuestions([...questions, ...questionsToAdd]);
     } catch (err) {
       setError(
@@ -111,7 +119,13 @@ export default function QuestionManagement() {
   const addQuestion = async () => {
     setError(null);
     if (newQuestion) {
-      const questionToAdd: any = {
+      const questionToAdd: {
+        question: string;
+        questionType: string;
+        status: number;
+        options: Record<string, string> | null;
+        example: string | null;
+      } = {
         question: newQuestion,
         questionType: mapQuestionType(newQuestionType),
         status: 1,
@@ -132,7 +146,7 @@ export default function QuestionManagement() {
         questionToAdd.options = optionsArray.reduce((acc, option, index) => {
           acc[`option${index + 1}`] = option;
           return acc;
-        }, {} as Record<string, any>);
+        }, {} as Record<string, string>);
       }
       if (newQuestionType === "Yes/No") {
         questionToAdd.options = {
@@ -217,7 +231,13 @@ export default function QuestionManagement() {
 
     setError(null);
     try {
-      const questionToUpdate: any = {
+      const questionToUpdate: {
+        question: string;
+        questionType: string;
+        status: number;
+        options: Record<string, string> | null;
+        example: string | null;
+      } = {
         question: editingQuestion.text,
         questionType: mapQuestionType(editingQuestion.type),
         status: 1,
@@ -235,7 +255,7 @@ export default function QuestionManagement() {
             acc[`option${index + 1}`] = option;
             return acc;
           },
-          {} as Record<string, any>
+          {} as Record<string, string>
         );
       }
 
@@ -245,7 +265,7 @@ export default function QuestionManagement() {
           option2: "No",
         };
       }
-      if (editingQuestion.type === "Input text") {
+      if (editingQuestion.type === "Input text" && editingQuestion.example) {
         questionToUpdate.example = editingQuestion.example;
       }
 
