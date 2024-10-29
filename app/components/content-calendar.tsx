@@ -32,6 +32,18 @@ import {
 } from "@/components/ui/dialog";
 import { Post } from "./playground";
 import SchedulePost from "./schedule-post";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ContentCalendarProps {
   scheduledPosts: Post[];
@@ -62,6 +74,16 @@ export default function ContentCalendar({
       currentYear: number;
     }[]
   >([]);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0
+  );
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const newStates = scheduledPosts.map((post) => ({
@@ -95,6 +117,26 @@ export default function ContentCalendar({
         return "bg-gray-500 text-white";
     }
   };
+
+  const renderPostIcon = (post: Post) => (
+    <TooltipProvider key={post.id}>
+      <Tooltip>
+        <TooltipTrigger>
+          <div
+            className={`text-xs rounded-full w-6 h-6 cursor-pointer hover:opacity-80 flex items-center justify-center ${getPlatformColor(
+              post.platform
+            )}`}
+            onClick={() => handleOpenContentViewer(post)}
+          >
+            {getPlatformIcon(post.platform)}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{post.content.substring(0, 50)}...</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 
   const renderCalendar = () => {
     const monthStart = startOfMonth(currentMonth);
@@ -137,36 +179,46 @@ export default function ContentCalendar({
           )
             return isSameDay(parseISO(post.scheduleDate), cloneDay);
         });
+        const dayId = day.toISOString();
+        const visiblePosts = windowWidth > 768 ? 2 : 1;
+
         days.push(
           <div
-            className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
+            className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] relative ${
               !isSameMonth(day, monthStart)
                 ? "text-gray-400"
                 : isSameDay(day, new Date())
                 ? "bg-blue-100"
                 : ""
             }`}
-            key={day.toString()}
+            key={dayId}
           >
             <span className="text-xs sm:text-sm font-medium">
               {formattedDate}
             </span>
-            <div className="flex flex-col space-y-1 mt-1">
-              {dayPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className={`text-xs rounded p-1 cursor-pointer hover:opacity-80 flex items-center justify-center ${getPlatformColor(
-                    post.platform
-                  )}`}
-                  onClick={() => handleOpenContentViewer(post)}
-                >
-                  {getPlatformIcon(post.platform)}
-                  <span className="hidden sm:inline ml-1">
-                    {post.content.substring(0, 20)}...
-                  </span>
-                </div>
-              ))}
+            <div className="flex flex-wrap gap-1 mt-1">
+              {dayPosts.slice(0, visiblePosts).map(renderPostIcon)}
             </div>
+            {dayPosts.length > visiblePosts && (
+              <Popover
+                open={openPopoverId === dayId}
+                onOpenChange={(open) => setOpenPopoverId(open ? dayId : null)}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="text-xs font-medium text-gray-500 w-6 h-6 p-0 absolute bottom-1 right-1"
+                  >
+                    +{dayPosts.length - visiblePosts}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2">
+                  <div className="flex flex-wrap gap-2">
+                    {dayPosts.slice(visiblePosts).map(renderPostIcon)}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         );
         day = addDays(day, 1);
@@ -240,13 +292,13 @@ export default function ContentCalendar({
   ) => {
     switch (platform) {
       case "Facebook":
-        return <Facebook className="h-4 w-4 mb-2 " />;
+        return <Facebook className="h-4 w-4" />;
       case "Twitter":
-        return <Twitter className="h-4 w-4 mb-2" />;
+        return <Twitter className="h-4 w-4" />;
       case "LinkedIn":
-        return <Linkedin className="h-4 w-4 mb-2" />;
+        return <Linkedin className="h-4 w-4" />;
       case "Instagram":
-        return <Instagram className="h-4 w-4 mb-2" />;
+        return <Instagram className="h-4 w-4" />;
     }
   };
 
@@ -286,33 +338,37 @@ export default function ContentCalendar({
         <CardContent className="p-4 pt-0">{renderCalendar()}</CardContent>
       </Card>
       <Dialog open={isContentViewerOpen} onOpenChange={setIsContentViewerOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px] h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Scheduled Post </DialogTitle>
+            <DialogTitle>Scheduled Post</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="min-h-[200px]">{selectedPost?.content || ""}</p>
-            <div className="flex flex-col mb-2 p-2 pl-0 rounded">
-              {selectedPost && getPlatformIcon(selectedPost.platform)}
-              <p className="text-sm text-gray-500 mb-2">
-                {selectedPost &&
-                  selectedPost.createdAt &&
-                  `Created At: ${format(
-                    parseISO(selectedPost.createdAt),
-                    "MMMM d, yyyy"
-                  )}`}
+          <ScrollArea className="flex-grow pr-4">
+            <div className="py-4">
+              <p className="mb-4 whitespace-pre-wrap">
+                {selectedPost?.content || ""}
               </p>
-              <p className="text-sm text-gray-500 mb-2">
-                {selectedPost &&
-                  selectedPost.scheduleDate &&
-                  `Scheduled for: ${format(
-                    parseISO(selectedPost.scheduleDate),
-                    "MMMM d, yyyy"
-                  )}`}
-              </p>
+              <div className="flex flex-col p-2 pl-0 rounded gap-2">
+                {selectedPost && getPlatformIcon(selectedPost.platform)}
+                <p className="text-sm text-gray-500">
+                  {selectedPost &&
+                    selectedPost.createdAt &&
+                    `Created At: ${format(
+                      parseISO(selectedPost.createdAt),
+                      "MMMM d, yyyy"
+                    )}`}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {selectedPost &&
+                    selectedPost.scheduleDate &&
+                    `Scheduled for: ${format(
+                      parseISO(selectedPost.scheduleDate),
+                      "MMMM d, yyyy"
+                    )}`}
+                </p>
+              </div>
             </div>
-          </div>
-          <DialogFooter className="sm:justify-between">
+          </ScrollArea>
+          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 mt-4">
             <SchedulePost
               buttonName="Reschedule Post"
               generatedIndex={selectedPostIndex ?? -1}

@@ -289,21 +289,27 @@ export default function GeneratePost({
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="w-full sm:w-2/3 content-center text-center">
                   {topics.length > 0 ? (
-                    <Select
-                      value={selectedTopic}
-                      onValueChange={setSelectedTopic}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a topic" />
-                      </SelectTrigger>
-                      <SelectContent className="w-1/2 md:w-full">
-                        {topics.map((topic, index) => (
-                          <SelectItem key={index} value={topic}>
-                            {topic}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative w-full">
+                      <Select
+                        value={selectedTopic}
+                        onValueChange={setSelectedTopic}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a topic" />
+                        </SelectTrigger>
+                        <SelectContent
+                          className="w-[var(--radix-select-trigger-width)] max-w-[--radix-select-content-available-width]"
+                          position="popper"
+                          sideOffset={4}
+                        >
+                          {topics.map((topic, index) => (
+                            <SelectItem key={index} value={topic}>
+                              {topic}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   ) : (
                     <p>No topic suggestions exist yet.</p>
                   )}
