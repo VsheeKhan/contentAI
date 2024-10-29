@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Users, FileQuestion, CreditCard } from "lucide-react";
+import {
+  BarChart,
+  Users,
+  FileQuestion,
+  CreditCard,
+  SquareTerminal,
+} from "lucide-react";
 import AnalyticsOverview from "../../components/analytics-management";
 import QuestionManagement from "../../components/question-management";
 import ProtectedLayout from "@/app/layout/protected-layout";
@@ -10,6 +16,7 @@ import UserManagement from "../../components/user-management";
 import FreeTrialMonitoring from "../../components/free-trial-monitoring";
 import SubscriptionControl from "../../components/subscription-control";
 import LogoutButton from "@/app/components/logout-button";
+import PromptManagement from "@/app/components/prompt-management";
 
 type TabTypes =
   | "analytics"
@@ -41,6 +48,10 @@ export default function AdminDashboard() {
               <FileQuestion className="mr-2 h-4 w-4" />
               Questions
             </TabsTrigger>
+            <TabsTrigger value="prompts" className="flex-1">
+              <SquareTerminal className="mr-2 h-4 w-4" />
+              Prompts
+            </TabsTrigger>
             <TabsTrigger value="users" className="flex-1">
               <Users className="mr-2 h-4 w-4" />
               Users
@@ -59,6 +70,9 @@ export default function AdminDashboard() {
           </TabsContent>
           <TabsContent value="questions">
             <QuestionManagement />
+          </TabsContent>
+          <TabsContent value="prompts">
+            <PromptManagement />
           </TabsContent>
           <TabsContent value="users">
             <UserManagement />
