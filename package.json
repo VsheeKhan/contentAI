@@ -9,6 +9,12 @@
     "test": "jest",
     "lint": "next lint"
   },
+    "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/jest.setup.ts"],
+    "testTimeout": 30000
+} ,
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -53,7 +59,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/jest": "^29.5.13",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/micro": "^10.0.0",
     "@types/multer": "^1.4.12",
@@ -66,10 +72,11 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.11",
     "jest": "^29.7.0",
-    "mongodb-memory-server": "^10.0.0",
+    "mongodb-memory-server": "^10.1.2",
     "postcss": "^8",
     "supertest": "^7.0.0",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.2.5",
     "typescript": "^5"
   }
 }
