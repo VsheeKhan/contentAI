@@ -17,15 +17,6 @@ beforeAll(async () => {
       email: 'test@example.com',
       password: 'TestPassword123',
     });
-
-  // Log in the user and store the token
-  const loginResponse = await request(app)
-    .post('/api/login')
-    .send({
-      email: 'test@example.com',
-      password: 'TestPassword123',
-    });
-    global.authToken = loginResponse.body.token;
 });
 
 afterAll(async () => {
