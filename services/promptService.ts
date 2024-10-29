@@ -1,6 +1,7 @@
 import Prompt, { PromptType } from '../models/prompt';
 
 interface PromptInput {
+  sortIndex: number;
     type: PromptType;
     name: string;
     prompt?: string;
@@ -12,7 +13,7 @@ export async function createPrompt(data: PromptInput) {
 }
 
 export async function getAllPrompt() { 
-    return await Prompt.find();
+    return await Prompt.find().sort({sortIndex: 1});
 }
 
 export async function getPrompt(name: string, type: string) {

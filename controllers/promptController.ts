@@ -7,7 +7,7 @@ import {
 } from "../services/promptService";
 
 const requiredVariables: Record<string, string[]> = {
-  "generate-custom-posts": [
+  "generate-posts-on-custom-topics": [
     "noOfPosts",
     "topic",
     "industry",
@@ -15,7 +15,7 @@ const requiredVariables: Record<string, string[]> = {
     "platform",
     "style",
   ],
-  "generate-posts": ["noOfPosts", "topic", "platform"],
+  "generate-posts-on-generated-topics": ["noOfPosts", "topic", "platform"],
   "generate-topics": ["digitalPersona", "noOfTopics"],
 };
 
@@ -43,7 +43,7 @@ export async function createPromptHandler(
 
   if (req.method === "POST") {
     try {
-      const { name, prompt } = JSON.parse(req.body);
+      const { name, prompt,sortIndex } = JSON.parse(req.body);
       const type = req.body.type ? req.body.type : "user";
       if (!name || !prompt) {
         return res
@@ -62,7 +62,7 @@ export async function createPromptHandler(
         checkVariablesInText(variables, prompt);
       }
 
-      const newPrompt = await createPrompt({ name, prompt, type });
+      const newPrompt = await createPrompt({ name, prompt, type, sortIndex });
       res.status(201).json(newPrompt);
     } catch (error) {
       res.status(400).json({
