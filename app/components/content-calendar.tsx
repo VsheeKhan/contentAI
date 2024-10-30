@@ -183,19 +183,20 @@ export default function ContentCalendar({
         });
         const dayId = day.toISOString();
         const visiblePosts = windowWidth > 768 ? 2 : 1;
+        const isToday = isSameDay(day, new Date());
 
         days.push(
           <div
             className={`bg-white p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] relative ${
-              !isSameMonth(day, monthStart)
-                ? "text-gray-400"
-                : isSameDay(day, new Date())
-                ? "bg-blue-100"
-                : ""
+              !isSameMonth(day, monthStart) ? "text-gray-400" : ""
             }`}
             key={dayId}
           >
-            <span className="text-xs sm:text-sm font-medium">
+            <span
+              className={`text-xs sm:text-sm font-medium ${
+                isToday ? "text-blue-600" : ""
+              }`}
+            >
               {formattedDate}
             </span>
             <div className="flex flex-wrap gap-1 mt-1">
