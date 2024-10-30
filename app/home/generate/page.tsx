@@ -55,7 +55,14 @@ export default function GeneratePage() {
     }
   };
 
-  const handleGeneratePost = async (requestBody: any) => {
+  const handleGeneratePost = async (requestBody: {
+    topic: string;
+    industry: string;
+    tone: string;
+    platform: string;
+    style: string;
+    noOfPosts: number;
+  }) => {
     try {
       const response = await authFetch("/api/generate-post", {
         method: "POST",

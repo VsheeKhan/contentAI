@@ -9,17 +9,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, PenLine, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { Post } from "./playground";
 import { formatDistance } from "date-fns";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/auth-context";
 import { Badge } from "@/components/ui/badge";
 import SchedulePost from "./schedule-post";
 import { toast } from "@/hooks/use-toast";
+import { Post } from "../contexts/posts-context";
 
 interface PostsListProps {
   posts: Post[];
-  handleUpdatePost: (requestBody: any, postId: string) => Promise<void>;
+  handleUpdatePost: (
+    requestBody: {
+      topic?: string;
+      industry?: string;
+      tone?: string;
+      platform?: string;
+      content?: string;
+      scheduleDate?: Date;
+      isCanceled?: boolean;
+    },
+    postId: string
+  ) => Promise<void>;
   handleDeletePost: (postId: string) => Promise<void>;
 }
 

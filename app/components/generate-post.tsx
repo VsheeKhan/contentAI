@@ -29,15 +29,29 @@ import { useAuth } from "../contexts/auth-context";
 import SchedulePost from "./schedule-post";
 import { authFetch } from "../utils/authFetch";
 import { useRouter } from "next/navigation";
+import { Platform } from "../contexts/posts-context";
 
-type Platform = "Facebook" | "Twitter" | "LinkedIn" | "Instagram";
 type Style = "Concise" | "Detailed" | "Persuasive" | "Creative";
 
 interface GeneratePostProps {
-  handleSavePost: (requestBody: any) => Promise<void>;
   topics: string[];
+  handleSavePost: (requestBody: {
+    topic: string;
+    industry: string;
+    tone: string;
+    platform: Platform;
+    scheduleDate?: Date;
+    generatedPost: string;
+  }) => Promise<void>;
   handleGenerateTopics: () => Promise<void>;
-  handleGeneratePost: (requestBody: any) => Promise<{ post: string }[]>;
+  handleGeneratePost: (requestBody: {
+    topic: string;
+    industry: string;
+    tone: string;
+    platform: string;
+    style: string;
+    noOfPosts: number;
+  }) => Promise<{ post: string }[]>;
 }
 
 export default function GeneratePost({
@@ -289,21 +303,27 @@ export default function GeneratePost({
               <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <div className="w-full sm:w-2/3 content-center text-center">
                   {topics.length > 0 ? (
-                    <Select
-                      value={selectedTopic}
-                      onValueChange={setSelectedTopic}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a topic" />
-                      </SelectTrigger>
-                      <SelectContent className="w-1/2 md:w-full">
-                        {topics.map((topic, index) => (
-                          <SelectItem key={index} value={topic}>
-                            {topic}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="relative w-full">
+                      <Select
+                        value={selectedTopic}
+                        onValueChange={setSelectedTopic}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a topic" />
+                        </SelectTrigger>
+                        <SelectContent
+                          className="w-[var(--radix-select-trigger-width)] max-w-[--radix-select-content-available-width]"
+                          position="popper"
+                          sideOffset={4}
+                        >
+                          {topics.map((topic, index) => (
+                            <SelectItem key={index} value={topic}>
+                              {topic}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   ) : (
                     <p>No topic suggestions exist yet.</p>
                   )}

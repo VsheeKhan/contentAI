@@ -18,7 +18,9 @@ type ProfileSettings = {
 
 interface ProfileSettingsProps {
   persona: string;
-  handleSaveProfile: (formData: FormData) => Promise<any>;
+  handleSaveProfile: (
+    formData: FormData
+  ) => Promise<{ status: string; data: { profileImage: string } }>;
   handleUpdatePersona: (persona: string) => void;
 }
 

@@ -10,7 +10,7 @@ declare module "next" {
 }
 
 declare global {
-  const mongoose: {
+  var mongoose: {
     conn: mongoose.Mongoose | null;
     promise: Promise<mongoose.Mongoose> | null;
   };

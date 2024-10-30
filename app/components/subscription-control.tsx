@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { authFetch } from "../utils/authFetch";
 import { capitalize } from "../utils/formattingUtils";
+import { PlanInfo, UserByPlanInfo } from "../admin/dashboard/page";
 
 type Status = "active" | "inactive";
 
@@ -51,7 +52,7 @@ export default function SubscriptionControl() {
         throw new Error("Failed to fetch all plans");
       }
       const data = await response.json();
-      const plans = data.map((plan: any) => plan.name);
+      const plans = data.map((plan: PlanInfo) => plan.name);
       setPlans(plans);
       return plans;
     } catch (error) {
@@ -67,21 +68,23 @@ export default function SubscriptionControl() {
     setError(null);
     try {
       const plans = await fetchAllPlans();
-      const proPlan = plans.find((plan: any) => plan !== "trial");
+      const proPlan = plans.find((plan: string) => plan !== "trial");
       const response = await authFetch(`/api/users-by-plan?plan=${proPlan}`);
       if (!response.ok) {
         throw new Error("Failed to fetch all users by plan");
       }
       const data = await response.json();
 
-      const usersData: Array<SubscribedUsers> = data.users.map((user: any) => ({
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        plan: user.subscription.plan,
-        status: user.subscription.status === 1 ? "active" : "inactive",
-        nextBillingDate: new Date(user.subscription.endDateTime),
-      }));
+      const usersData: Array<SubscribedUsers> = data.users.map(
+        (user: UserByPlanInfo) => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          plan: user.subscription.plan,
+          status: user.subscription.status === 1 ? "active" : "inactive",
+          nextBillingDate: new Date(user.subscription.endDateTime),
+        })
+      );
       setSubscribedUsers(usersData);
     } catch (error) {
       setError(

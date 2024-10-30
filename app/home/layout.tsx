@@ -14,6 +14,7 @@ import {
   Settings,
   CalendarIcon,
   Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/app/contexts/auth-context";
 import { authFetch } from "@/app/utils/authFetch";
@@ -95,19 +96,13 @@ export default function HomeLayout({
 
   return (
     <div className="flex h-screen bg-gray-100 w-full">
-      {/* Mobile menu button */}
-      <div className="md:hidden p-3 bg-white">
-        <Button variant="ghost" onClick={toggleMobileMenu}>
-          <Menu className="h-6 w-6" />
-        </Button>
-      </div>
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-md ${
-          isMobileMenuOpen ? "block" : "hidden"
-        } md:block md:w-64`}
+        className={`fixed inset-y-0 left-0 z-50 bg-white shadow-md transform ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:w-64`}
       >
-        <div className="p-4 border-b">
+        <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-xl font-semibold flex items-center">
             <span
               className={`w-8 h-8 rounded-md mr-2 flex items-center justify-center overflow-hidden ${
@@ -128,6 +123,14 @@ export default function HomeLayout({
             </span>
             {user?.name}
           </h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={toggleMobileMenu}
+          >
+            <X className="h-6 w-6" />
+          </Button>
         </div>
         <nav className="p-4">
           <Link href="/home/generate" passHref>
@@ -182,21 +185,43 @@ export default function HomeLayout({
       </div>
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-3 md:p-4 md:pb-3 flex flex-row justify-between items-center">
-          <h1 className="text-xl md:text-2xl font-semibold md:mb-0">
-            {headerTitle}
-          </h1>
-          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
-            {
-              // Show the free trial badge and upgrade button if the user is on a free trial and hasn't expired
-            }
-            {subscriptionStatus !== "active" &&
-              subscriptionStatus !== "canceled" &&
-              !user?.hasExpired && (
-                <>
-                  <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    Free Trial
-                  </div>
+        <div className="flex ">
+          {/* Mobile menu button */}
+          <div className="md:hidden p-3 pr-0 bg-white">
+            <Button variant="ghost" onClick={toggleMobileMenu}>
+              <Menu className="h-6 w-6" />
+            </Button>
+          </div>
+          <header className="bg-white shadow-sm p-3 md:p-4 md:pb-3 flex flex-row justify-between items-center flex-1">
+            <h1 className="text-xl md:text-2xl font-semibold md:mb-0">
+              {headerTitle}
+            </h1>
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4">
+              {
+                // Show the free trial badge and upgrade button if the user is on a free trial and hasn't expired
+              }
+              {subscriptionStatus !== "active" &&
+                subscriptionStatus !== "canceled" &&
+                !user?.hasExpired && (
+                  <>
+                    <div className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      Free Trial
+                    </div>
+                    <Button
+                      variant="default"
+                      className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
+                      onClick={() => router.push("/home/subscribe")}
+                    >
+                      Upgrade to Pro
+                    </Button>
+                  </>
+                )}
+              {
+                // Show the upgrade button if the user is on a free trial and has expired
+              }
+              {subscriptionStatus !== "active" &&
+                subscriptionStatus !== "canceled" &&
+                user?.hasExpired && (
                   <Button
                     variant="default"
                     className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
@@ -204,14 +229,23 @@ export default function HomeLayout({
                   >
                     Upgrade to Pro
                   </Button>
-                </>
+                )}
+              {
+                // Show the upgrade button if the user is on a paid pro plan and has not expired
+              }
+              {subscriptionStatus === "active" && !user?.hasExpired && (
+                <Button
+                  variant="default"
+                  className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
+                  onClick={() => router.push("/home/subscribe?plan=pro")}
+                >
+                  Upgraded to Pro
+                </Button>
               )}
-            {
-              // Show the upgrade button if the user is on a free trial and has expired
-            }
-            {subscriptionStatus !== "active" &&
-              subscriptionStatus !== "canceled" &&
-              user?.hasExpired && (
+              {
+                // Show the upgrade button if the user is on a paid pro plan and has expired
+              }
+              {subscriptionStatus === "active" && user?.hasExpired && (
                 <Button
                   variant="default"
                   className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
@@ -220,58 +254,36 @@ export default function HomeLayout({
                   Upgrade to Pro
                 </Button>
               )}
-            {
-              // Show the upgrade button if the user is on a paid pro plan and has not expired
-            }
-            {subscriptionStatus === "active" && !user?.hasExpired && (
-              <Button
-                variant="default"
-                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
-                onClick={() => router.push("/home/subscribe?plan=pro")}
-              >
-                Upgraded to Pro
-              </Button>
-            )}
-            {
-              // Show the upgrade button if the user is on a paid pro plan and has expired
-            }
-            {subscriptionStatus === "active" && user?.hasExpired && (
-              <Button
-                variant="default"
-                className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
-                onClick={() => router.push("/home/subscribe")}
-              >
-                Upgrade to Pro
-              </Button>
-            )}
-            {
-              // Show the upgrade button if the user is on an active paid pro plan and has canceled
-            }
-            {subscriptionStatus === "canceled" && !user?.hasExpired && (
-              <Button
-                variant="default"
-                className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
-                onClick={() =>
-                  router.push("/home/subscribe?plan=pro&status=cancelled")
-                }
-              >
-                Active but Cancelled
-              </Button>
-            )}
-            {
-              // Show the upgrade button if the user is a paid pro plan and has canceled and expired
-            }
-            {subscriptionStatus === "canceled" && user?.hasExpired && (
-              <Button
-                variant="default"
-                className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
-                onClick={() => router.push("/home/subscribe")}
-              >
-                Upgrade to Pro
-              </Button>
-            )}
-          </div>
-        </header>
+              {
+                // Show the upgrade button if the user is on an active paid pro plan and has canceled
+              }
+              {subscriptionStatus === "canceled" && !user?.hasExpired && (
+                <Button
+                  variant="default"
+                  className="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-pink-600 w-full md:w-auto"
+                  onClick={() =>
+                    router.push("/home/subscribe?plan=pro&status=cancelled")
+                  }
+                >
+                  Active but Cancelled
+                </Button>
+              )}
+              {
+                // Show the upgrade button if the user is a paid pro plan and has canceled and expired
+              }
+              {subscriptionStatus === "canceled" && user?.hasExpired && (
+                <Button
+                  variant="default"
+                  className="bg-pink-500 hover:bg-pink-600 w-full md:w-auto"
+                  onClick={() => router.push("/home/subscribe")}
+                >
+                  Upgrade to Pro
+                </Button>
+              )}
+            </div>
+          </header>
+        </div>
+
         <main className="p-4 md:p-6 space-y-8">{children}</main>
       </div>
       <Toaster />

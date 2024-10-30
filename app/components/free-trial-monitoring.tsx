@@ -10,10 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authFetch } from "../utils/authFetch";
 import { Loader2, XCircle } from "lucide-react";
+import { UserByPlanInfo } from "../admin/dashboard/page";
 
 type TrialUser = {
   id: string;
@@ -43,14 +43,16 @@ export default function FreeTrialMonitoring() {
       }
       const data = await response.json();
 
-      const usersData: Array<TrialUser> = data.users.map((user: any) => ({
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        daysLeft: user.subscription ? user.subscription.daysLeft : 0,
-        subscriptionId: user.subscription ? user.subscription.id : null,
-        isTerminated: user.subscription.status === 1 ? false : true,
-      }));
+      const usersData: Array<TrialUser> = data.users.map(
+        (user: UserByPlanInfo) => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          daysLeft: user.subscription ? user.subscription.daysLeft : 0,
+          subscriptionId: user.subscription ? user.subscription.id : null,
+          isTerminated: user.subscription.status === 1 ? false : true,
+        })
+      );
       setTrialUsers(usersData);
     } catch (error) {
       setError(
