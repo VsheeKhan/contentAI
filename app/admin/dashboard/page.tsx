@@ -110,10 +110,12 @@ export default function AdminDashboard() {
   return (
     <ProtectedLayout>
       <div className="container mx-auto p-6 h-full">
-        <div className="flex justify-end">
-          <LogoutButton />
+        <div className="flex justify-between  mb-6">
+          <h1 className="text-xl md:text-3xl font-bold">Admin Dashboard</h1>
+          <div className="flex justify-end">
+            <LogoutButton />
+          </div>
         </div>
-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
         <Tabs
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as TabTypes)}
@@ -140,7 +142,7 @@ export default function AdminDashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <TabsList className="w-full grid grid-cols-6 gap-2">
               {tabItems.map((item) => (
                 <TabsTrigger
                   key={item.value}

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { authFetch } from "../utils/authFetch";
+import { Textarea } from "@/components/ui/textarea";
 
 type Prompt = {
   _id: string;
@@ -150,7 +151,7 @@ export default function PromptManagement() {
         </TableCell>
         <TableCell>
           {isEditing ? (
-            <Input
+            <Textarea
               value={prompt.prompt}
               onChange={(e) =>
                 setPrompts(

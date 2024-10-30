@@ -164,7 +164,7 @@ export default function AnalyticsOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -215,11 +215,13 @@ export default function AnalyticsOverview() {
             </p>
           </CardContent>
         </Card>
-        <Card className="col-span-4">
+      </div>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+        <Card className="col-span-1 lg:col-span-4">
           <CardHeader>
             <CardTitle>User Signups Over Time</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[300px] sm:h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={userSignUpData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -237,7 +239,7 @@ export default function AnalyticsOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="col-span-2">
+        <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle>Subscription Distribution</CardTitle>
           </CardHeader>
@@ -254,7 +256,7 @@ export default function AnalyticsOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="col-span-2">
+        <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle>AI Model Usage by Day</CardTitle>
           </CardHeader>
