@@ -291,7 +291,7 @@ export async function updateUserProfile(userId: string, updates: any) {
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
   }
-  if (profileImage) user.profileImage = profileImage;
+  user.profileImage = profileImage !== undefined ? profileImage : '';
   await user.save();
   return {user};
 }

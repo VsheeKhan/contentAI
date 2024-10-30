@@ -47,12 +47,12 @@ export async function generatePost(userId:string, topic: string, industry: strin
 		const persona: any = await DigitalPersona.findOne({ userId });
 	  let userQuery: string;
 		if (industry != "" && tone != "" && platform != "") {
-			const generatePersonaSystemPrompt: any = await getPrompt("generate-posts", "user");
+			const generatePersonaSystemPrompt: any = await getPrompt("generate-posts-on-custom-topics", "user");
 			const prompt = generatePersonaSystemPrompt.prompt;
 			const variables: Record<string, string> = { topic, industry, tone, platform, style, noOfPosts: String(noOfPosts) };
 			userQuery = await getUpdatedPrompt(prompt, variables)
 		} else {
-			const generatePersonaSystemPrompt: any = await getPrompt("generate-posts", "user");
+			const generatePersonaSystemPrompt: any = await getPrompt("generate-posts-on-generated-topics", "user");
 			const prompt = generatePersonaSystemPrompt.prompt;
 			const variables: Record<string, string> = { topic, platform, noOfPosts: String(noOfPosts) };
 			userQuery = await getUpdatedPrompt(prompt, variables)
