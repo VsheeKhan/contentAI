@@ -20,8 +20,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Pencil, Save, Trash2, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Pencil,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { authFetch } from "../utils/authFetch";
+import { Textarea } from "@/components/ui/textarea";
 
 type QuestionType =
   | "Input text"
@@ -47,6 +56,7 @@ export default function QuestionManagement() {
   const [newOptions, setNewOptions] = useState("");
   const [newExample, setNewExample] = useState("");
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   useEffect(() => {
     fetchQuestions();
@@ -210,6 +220,7 @@ export default function QuestionManagement() {
         throw new Error("Failed to delete question");
       }
       setQuestions(questions.filter((q) => q.id !== id));
+      setExpandedRows(expandedRows.filter((rowId) => rowId !== id));
     } catch (error) {
       console.error("Error removing question:", error);
       setError(
@@ -220,6 +231,9 @@ export default function QuestionManagement() {
 
   const startEditing = (question: Question) => {
     setEditingQuestion({ ...question });
+    if (!expandedRows.includes(question.id)) {
+      setExpandedRows([...expandedRows, question.id]);
+    }
   };
 
   const cancelEditing = () => {
@@ -315,6 +329,14 @@ export default function QuestionManagement() {
     }
   };
 
+  const toggleRowExpansion = (id: number) => {
+    setExpandedRows(
+      expandedRows.includes(id)
+        ? expandedRows.filter((rowId) => rowId !== id)
+        : [...expandedRows, id]
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -387,136 +409,266 @@ export default function QuestionManagement() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[44%]">Question</TableHead>
-            <TableHead className="w-[15%]">Type</TableHead>
-            <TableHead className="w-[40%]">Options/Examples</TableHead>
+            <TableHead className="w-[15%] hidden md:table-cell">Type</TableHead>
+            <TableHead className="w-[40%] hidden md:table-cell">
+              Options/Examples
+            </TableHead>
             <TableHead className="w-[1%]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {questions.map((question) => (
-            <TableRow key={question.id}>
-              <TableCell>
-                {editingQuestion?.id === question.id ? (
-                  <Input
-                    value={editingQuestion.text}
-                    onChange={(e) =>
-                      setEditingQuestion({
-                        ...editingQuestion,
-                        text: e.target.value,
-                      })
-                    }
-                  />
-                ) : (
-                  question.text
-                )}
-              </TableCell>
-              <TableCell>
-                {editingQuestion?.id === question.id ? (
-                  <Select
-                    value={editingQuestion.type}
-                    onValueChange={(value: QuestionType) =>
-                      setEditingQuestion({
-                        ...editingQuestion,
-                        type: value,
-                        options:
-                          value === "Yes/No"
-                            ? ["Yes", "No"]
-                            : editingQuestion.options,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Input text">Input text</SelectItem>
-                      <SelectItem value="Single Select">
-                        Single Select
-                      </SelectItem>
-                      <SelectItem value="Yes/No">Yes/No</SelectItem>
-                      <SelectItem value="Multiple Select">
-                        Multiple Select
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  question.type
-                )}
-              </TableCell>
-              <TableCell>
-                {editingQuestion?.id === question.id &&
-                (editingQuestion.type === "Single Select" ||
-                  editingQuestion.type === "Multiple Select") ? (
-                  <Input
-                    value={editingQuestion.options?.join(", ") || ""}
-                    onChange={(e) =>
-                      setEditingQuestion({
-                        ...editingQuestion,
-                        options: e.target.value.split(",").map((o) => o.trim()),
-                      })
-                    }
-                    placeholder="Enter options, separated by commas"
-                  />
-                ) : editingQuestion?.id === question.id &&
-                  editingQuestion.type === "Input text" ? (
-                  <Input
-                    value={editingQuestion.example}
-                    onChange={(e) =>
-                      setEditingQuestion({
-                        ...editingQuestion,
-                        example: e.target.value,
-                      })
-                    }
-                    placeholder="Enter an example of response"
-                  />
-                ) : question.options ? (
-                  question.options.join(", ")
-                ) : question.example ? (
-                  question.example
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-              <TableCell>
-                <div className="flex justify-end space-x-2">
+            <>
+              <TableRow key={question.id}>
+                <TableCell>
                   {editingQuestion?.id === question.id ? (
-                    <>
-                      <Button
-                        onClick={updateQuestion}
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <Save className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        onClick={cancelEditing}
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
+                    <Input
+                      value={editingQuestion.text}
+                      onChange={(e) =>
+                        setEditingQuestion({
+                          ...editingQuestion,
+                          text: e.target.value,
+                        })
+                      }
+                    />
                   ) : (
-                    <>
-                      <Button
-                        onClick={() => startEditing(question)}
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-center">
+                      <span className="mr-2">{question.text}</span>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        onClick={() => removeQuestion(question.id)}
+                        size="sm"
+                        className="p-0 h-6 w-6 rounded-full md:hidden"
+                        onClick={() => toggleRowExpansion(question.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {expandedRows.includes(question.id) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </Button>
-                    </>
+                    </div>
                   )}
-                </div>
-              </TableCell>
-            </TableRow>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {editingQuestion?.id === question.id ? (
+                    <Select
+                      value={editingQuestion.type}
+                      onValueChange={(value: QuestionType) =>
+                        setEditingQuestion({
+                          ...editingQuestion,
+                          type: value,
+                          options:
+                            value === "Yes/No"
+                              ? ["Yes", "No"]
+                              : editingQuestion.options,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Input text">Input text</SelectItem>
+                        <SelectItem value="Single Select">
+                          Single Select
+                        </SelectItem>
+                        <SelectItem value="Yes/No">Yes/No</SelectItem>
+                        <SelectItem value="Multiple Select">
+                          Multiple Select
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    question.type
+                  )}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {editingQuestion?.id === question.id &&
+                  (editingQuestion.type === "Single Select" ||
+                    editingQuestion.type === "Multiple Select") ? (
+                    <Textarea
+                      value={editingQuestion.options?.join(", ") || ""}
+                      onChange={(e) =>
+                        setEditingQuestion({
+                          ...editingQuestion,
+                          options: e.target.value
+                            .split(",")
+                            .map((o) => o.trim()),
+                        })
+                      }
+                      placeholder="Enter options, separated by commas"
+                    />
+                  ) : editingQuestion?.id === question.id &&
+                    editingQuestion.type === "Input text" ? (
+                    <Textarea
+                      value={editingQuestion.example}
+                      onChange={(e) =>
+                        setEditingQuestion({
+                          ...editingQuestion,
+                          example: e.target.value,
+                        })
+                      }
+                      placeholder="Enter an example of response"
+                    />
+                  ) : question.options ? (
+                    question.options.join(", ")
+                  ) : question.example ? (
+                    question.example
+                  ) : (
+                    "-"
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end space-x-2">
+                    {editingQuestion?.id === question.id ? (
+                      <>
+                        <Button
+                          onClick={updateQuestion}
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          onClick={cancelEditing}
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={() => startEditing(question)}
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeQuestion(question.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+              {expandedRows.includes(question.id) && (
+                <TableRow className="md:hidden">
+                  <TableCell colSpan={4}>
+                    <div className="py-2 space-y-2">
+                      <div>
+                        <Label htmlFor={`mobile-type-${question.id}`}>
+                          Type
+                        </Label>
+                        {editingQuestion?.id === question.id ? (
+                          <Select
+                            value={editingQuestion.type}
+                            onValueChange={(value: QuestionType) =>
+                              setEditingQuestion({
+                                ...editingQuestion,
+                                type: value,
+                                options:
+                                  value === "Yes/No"
+                                    ? ["Yes", "No"]
+                                    : editingQuestion.options,
+                              })
+                            }
+                          >
+                            <SelectTrigger id={`mobile-type-${question.id}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Input text">
+                                Input text
+                              </SelectItem>
+                              <SelectItem value="Single Select">
+                                Single Select
+                              </SelectItem>
+                              <SelectItem value="Yes/No">Yes/No</SelectItem>
+                              <SelectItem value="Multiple Select">
+                                Multiple Select
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            id={`mobile-type-${question.id}`}
+                            value={question.type}
+                            readOnly
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor={`mobile-options-${question.id}`}>
+                          {question.type === "Input text"
+                            ? "Example"
+                            : "Options"}
+                        </Label>
+                        {editingQuestion?.id === question.id ? (
+                          question.type === "Input text" ? (
+                            <Textarea
+                              id={`mobile-options-${question.id}`}
+                              value={editingQuestion.example || ""}
+                              onChange={(e) =>
+                                setEditingQuestion({
+                                  ...editingQuestion,
+                                  example: e.target.value,
+                                })
+                              }
+                              placeholder="Enter an example of response"
+                            />
+                          ) : (
+                            <Textarea
+                              id={`mobile-options-${question.id}`}
+                              value={editingQuestion.options?.join(", ") || ""}
+                              onChange={(e) =>
+                                setEditingQuestion({
+                                  ...editingQuestion,
+                                  options: e.target.value
+                                    .split(",")
+                                    .map((o) => o.trim()),
+                                })
+                              }
+                              placeholder="Enter options, separated by commas"
+                            />
+                          )
+                        ) : (
+                          <Input
+                            id={`mobile-options-${question.id}`}
+                            value={
+                              question.options
+                                ? question.options.join(", ")
+                                : question.example || "-"
+                            }
+                            readOnly
+                          />
+                        )}
+                      </div>
+                      {editingQuestion?.id === question.id && (
+                        <div className="flex justify-end space-x-2">
+                          <Button onClick={updateQuestion} size="sm">
+                            Save
+                          </Button>
+                          <Button
+                            onClick={cancelEditing}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>

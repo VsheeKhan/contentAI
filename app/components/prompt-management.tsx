@@ -1,3 +1,5 @@
+"use client";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Table,
@@ -9,10 +11,17 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { authFetch } from "../utils/authFetch";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Prompt = {
   _id: string;
@@ -27,6 +36,7 @@ export default function PromptManagement() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newPrompt, setNewPrompt] = useState<Partial<Prompt> | null>(null);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPrompts();
@@ -55,6 +65,9 @@ export default function PromptManagement() {
   const handleEdit = (id: string) => {
     setError(null);
     setEditingId(id);
+    if (!expandedRows.includes(id)) {
+      setExpandedRows([...expandedRows, id]);
+    }
   };
 
   const handleSave = async (id: string) => {
@@ -65,7 +78,6 @@ export default function PromptManagement() {
       const response = await authFetch(`/api/prompt/${id}`, {
         method: "PUT",
         body: JSON.stringify({
-          name: prompt?.name,
           prompt: prompt?.prompt,
         }),
       });
@@ -88,7 +100,7 @@ export default function PromptManagement() {
 
   const handleCreate = () => {
     setError(null);
-    setNewPrompt({ name: "", type: "", prompt: "" });
+    setNewPrompt({ name: "", type: "user", prompt: "" });
   };
 
   const handleSaveNew = async () => {
@@ -114,42 +126,36 @@ export default function PromptManagement() {
     }
   };
 
+  const toggleRowExpansion = (id: string) => {
+    setExpandedRows(
+      expandedRows.includes(id)
+        ? expandedRows.filter((rowId) => rowId !== id)
+        : [...expandedRows, id]
+    );
+  };
+
   const renderRow = (prompt: Prompt, isEditing: boolean) => (
     <>
       <TableRow key={prompt._id}>
-        <TableCell>
-          {isEditing ? (
-            <Input
-              value={prompt.name}
-              onChange={(e) =>
-                setPrompts(
-                  prompts.map((p) =>
-                    p._id === prompt._id ? { ...p, name: e.target.value } : p
-                  )
-                )
-              }
-            />
-          ) : (
-            prompt.name
-          )}
+        <TableCell className="font-medium">
+          <div className="flex items-center">
+            <span className="mr-2">{prompt.name}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 h-6 w-6 rounded-full lg:hidden"
+              onClick={() => toggleRowExpansion(prompt._id)}
+            >
+              {expandedRows.includes(prompt._id) ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </TableCell>
-        <TableCell>
-          {isEditing ? (
-            <Input
-              value={prompt.type}
-              onChange={(e) =>
-                setPrompts(
-                  prompts.map((p) =>
-                    p._id === prompt._id ? { ...p, type: e.target.value } : p
-                  )
-                )
-              }
-            />
-          ) : (
-            prompt.type
-          )}
-        </TableCell>
-        <TableCell>
+        <TableCell className="hidden lg:table-cell">{prompt.type}</TableCell>
+        <TableCell className="hidden lg:table-cell">
           {isEditing ? (
             <Textarea
               value={prompt.prompt}
@@ -167,10 +173,8 @@ export default function PromptManagement() {
         </TableCell>
         <TableCell>
           {isEditing ? (
-            <div className="flex">
-              <Button onClick={() => handleSave(prompt._id)} className="mr-2">
-                Save
-              </Button>
+            <div className="flex flex-col space-y-2 lg:flex-row lg:space-y-0 lg:space-x-2">
+              <Button onClick={() => handleSave(prompt._id)}>Save</Button>
               <Button onClick={handleCancel} variant="outline">
                 Cancel
               </Button>
@@ -180,10 +184,46 @@ export default function PromptManagement() {
           )}
         </TableCell>
       </TableRow>
+      {(expandedRows.includes(prompt._id) || isEditing) && (
+        <TableRow className="lg:hidden">
+          <TableCell colSpan={4}>
+            <div className="space-y-2">
+              <div>
+                <label className="font-medium">Name:</label>
+                <p>{prompt.name}</p>
+              </div>
+              <div>
+                <label className="font-medium">Type:</label>
+                <p>{prompt.type}</p>
+              </div>
+              <div>
+                <label className="font-medium">Prompt:</label>
+                {isEditing ? (
+                  <Textarea
+                    value={prompt.prompt}
+                    onChange={(e) =>
+                      setPrompts(
+                        prompts.map((p) =>
+                          p._id === prompt._id
+                            ? { ...p, prompt: e.target.value }
+                            : p
+                        )
+                      )
+                    }
+                    className="mt-1"
+                  />
+                ) : (
+                  <p>{prompt.prompt}</p>
+                )}
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
       {isEditing && (
         <TableRow>
           <TableCell colSpan={4}>
-            <Alert>
+            <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Warning</AlertTitle>
               <AlertDescription>
@@ -216,64 +256,69 @@ export default function PromptManagement() {
       <div className="flex justify-end mb-4">
         <Button onClick={handleCreate}>Create New Prompt</Button>
       </div>
+      {newPrompt && (
+        <div className="flex flex-col space-y-4">
+          <div className="flex w-full space-x-2">
+            <Input
+              value={newPrompt.name}
+              onChange={(e) =>
+                setNewPrompt({ ...newPrompt, name: e.target.value })
+              }
+              placeholder="Enter name"
+            />
+
+            <Select
+              value={newPrompt.type}
+              onValueChange={(value) =>
+                setNewPrompt({ ...newPrompt, type: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="prompt">Prompt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex w-full space-x-2">
+            <Textarea
+              value={newPrompt.prompt}
+              onChange={(e) =>
+                setNewPrompt({ ...newPrompt, prompt: e.target.value })
+              }
+              placeholder="Enter prompt"
+            />
+          </div>
+          <div className="flex flex-col space-y-2 lg:flex-row lg:space-y-0 lg:space-x-2">
+            <Button
+              onClick={handleSaveNew}
+              disabled={!newPrompt.name || !newPrompt.type || !newPrompt.prompt}
+            >
+              Save
+            </Button>
+            <Button onClick={handleCancel} variant="outline">
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[20%]">Name</TableHead>
-              <TableHead className="w-[10%]">Type</TableHead>
-              <TableHead className="w-[60%]">Prompt</TableHead>
+              <TableHead className="w-[30%]">Name</TableHead>
+              <TableHead className="w-[10%] hidden lg:table-cell">
+                Type
+              </TableHead>
+              <TableHead className="w-[50%] hidden lg:table-cell">
+                Prompt
+              </TableHead>
               <TableHead className="w-[10%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {newPrompt && (
-              <TableRow>
-                <TableCell>
-                  <Input
-                    value={newPrompt.name}
-                    onChange={(e) =>
-                      setNewPrompt({ ...newPrompt, name: e.target.value })
-                    }
-                    placeholder="Enter name"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Input
-                    value={newPrompt.type}
-                    onChange={(e) =>
-                      setNewPrompt({ ...newPrompt, type: e.target.value })
-                    }
-                    placeholder="Enter type"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Input
-                    value={newPrompt.prompt}
-                    onChange={(e) =>
-                      setNewPrompt({ ...newPrompt, prompt: e.target.value })
-                    }
-                    placeholder="Enter prompt"
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={handleSaveNew}
-                      disabled={
-                        !newPrompt.name || !newPrompt.type || !newPrompt.prompt
-                      }
-                      className="mr-2"
-                    >
-                      Save
-                    </Button>
-                    <Button onClick={handleCancel} variant="outline">
-                      Cancel
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
             {prompts.map((prompt) =>
               renderRow(prompt, editingId === prompt._id)
             )}
